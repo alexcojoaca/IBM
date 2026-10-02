@@ -16,7 +16,11 @@ export type LicenseRow = {
 };
 
 function normalizeKey(key: string) {
-  return key.trim().toUpperCase();
+  return key
+    .trim()
+    .toUpperCase()
+    .replace(/[\u2010-\u2015\u2212]/g, "-") // fancy dashes → -
+    .replace(/\s+/g, "");
 }
 
 export async function issueLicenseForUser(userId: string, notes?: string) {
@@ -96,7 +100,8 @@ export async function activateLicense(input: {
     .eq("license_key", key)
     .maybeSingle();
 
-  if (error || !license) throw new Error("Invalid license key");
+  if (error) throw new Error(`License lookup failed: ${error.message}`);
+  if (!license) throw new Error("Invalid license key");
   if (license.status !== "active") throw new Error(`License is ${license.status}`);
   if (license.expires_at && new Date(license.expires_at) < new Date()) {
     await supabase.from("licenses").update({ status: "expired" }).eq("id", license.id);
