@@ -31,7 +31,7 @@ export default async function DashboardPage() {
           My licenses
         </Link>
         <Link href="/dashboard/download">Download</Link>
-        {profile?.role === "admin" && <Link href="/admin">Admin</Link>}
+        <Link href="/admin">Admin</Link>
         <form action="/auth/signout" method="post" style={{ marginTop: "1.5rem" }}>
           <button className="btn" type="submit">
             Sign out
@@ -41,7 +41,7 @@ export default async function DashboardPage() {
       <main className="dash-main">
         <h1>Welcome{profile?.full_name ? `, ${profile.full_name}` : ""}</h1>
         <p className="muted" style={{ marginTop: "-0.5rem", marginBottom: "1.25rem" }}>
-          Your dedicated license keys stay here. Affiliate tools come later.
+          Role: {profile?.role || "unknown"} · License keys stay here. Affiliate tools come later.
         </p>
 
         <div className="panel" style={{ marginBottom: "1rem" }}>

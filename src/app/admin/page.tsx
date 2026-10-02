@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [created, setCreated] = useState("");
   const [copyMsg, setCopyMsg] = useState("");
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [diag, setDiag] = useState("");
 
   const load = async () => {
     const supabase = createClient();
@@ -31,15 +32,36 @@ export default function AdminPage() {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
+      setDiag("Not logged in. Go to /login first.");
       setAllowed(false);
       return;
     }
-    const { data: profile } = await supabase
+    const { data: profile, error: profileErr } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, email")
       .eq("id", user.id)
-      .single();
-    if (profile?.role !== "admin") {
+      .maybeSingle();
+
+    const role = (profile?.role || "").trim().toLowerCase();
+    if (role !== "admin") {
+      setDiag(
+        [
+          `Logged in as: ${user.email || user.id}`,
+          `User id: ${user.id}`,
+          profile
+            ? `Role in profiles: "${profile.role}" (need exactly: admin)`
+            : "No row in profiles for this user — run the SQL below.",
+          profileErr ? `Read error: ${profileErr.message}` : "",
+          "",
+          "In Supabase → SQL Editor run:",
+          `update public.profiles set role = 'admin' where id = '${user.id}';`,
+          "-- or --",
+          `update public.profiles set role = 'admin' where lower(email) = lower('${user.email || ""}');`,
+          "Then refresh this page (F5).",
+        ]
+          .filter(Boolean)
+          .join("\n")
+      );
       setAllowed(false);
       return;
     }
@@ -121,10 +143,29 @@ export default function AdminPage() {
       <div className="shell auth-wrap">
         <div className="auth-card">
           <h1>Admin only</h1>
-          <p>Your account is not an admin. Set role = admin in Supabase for your user.</p>
-          <Link className="btn btn-primary" href="/dashboard">
-            Back
-          </Link>
+          <p className="muted">Same login as users — admin is just your role in Supabase.</p>
+          {diag && (
+            <pre
+              style={{
+                whiteSpace: "pre-wrap",
+                fontSize: "0.8rem",
+                background: "rgba(0,0,0,0.25)",
+                padding: "0.75rem",
+                borderRadius: 8,
+                overflow: "auto",
+              }}
+            >
+              {diag}
+            </pre>
+          )}
+          <div className="row" style={{ marginTop: "1rem" }}>
+            <button className="btn btn-primary" type="button" onClick={() => load()}>
+              Recheck
+            </button>
+            <Link className="btn" href="/dashboard">
+              Back
+            </Link>
+          </div>
         </div>
       </div>
     );
