@@ -1,4 +1,9 @@
-# Keep downloadable bot package here after you copy it from IBM bot builds:
-# public/downloads/IBM-Client.zip
+# After building IBM-Client.zip, host it somewhere public (~230MB).
+# Recommended: Supabase Storage bucket "downloads" → public file → paste URL in
+# NEXT_PUBLIC_CLIENT_DOWNLOAD_URL on Vercel.
+#
+# Local test only (not committed):
+#   copy Desktop\IBM-Client.zip → ibm-platform\public\downloads\IBM-Client.zip
 *
 !.gitignore
+!README.txt

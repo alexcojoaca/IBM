@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DashNav } from "@/components/DashNav";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
@@ -17,44 +18,42 @@ export default async function DashboardPage() {
 
   const { data: licenses } = await supabase
     .from("licenses")
-    .select("id, license_key, plan, status, expires_at, created_at")
+    .select("id, license_key, plan, status, expires_at, created_at, max_devices")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   return (
     <div className="shell dash">
-      <aside className="dash-side">
-        <div className="brand" style={{ marginBottom: "1.25rem" }}>
-          IBM <span>●</span>
-        </div>
-        <Link className="active" href="/dashboard">
-          My licenses
-        </Link>
-        <Link href="/dashboard/download">Download</Link>
-        <Link href="/admin">Admin</Link>
-        <form action="/auth/signout" method="post" style={{ marginTop: "1.5rem" }}>
-          <button className="btn" type="submit">
-            Sign out
-          </button>
-        </form>
-      </aside>
+      <DashNav active="/dashboard" isAdmin={profile?.role === "admin"} />
       <main className="dash-main">
         <h1>Welcome{profile?.full_name ? `, ${profile.full_name}` : ""}</h1>
         <p className="muted" style={{ marginTop: "-0.5rem", marginBottom: "1.25rem" }}>
-          Role: {profile?.role || "unknown"} · License keys stay here. Affiliate tools come later.
+          Your IBM licenses stay here — copy the key into the desktop bot anytime.
         </p>
+
+        {!licenses?.length && (
+          <div className="panel" style={{ marginBottom: "1rem" }}>
+            <strong>No license yet</strong>
+            <p className="muted" style={{ margin: "0.35rem 0 0.75rem" }}>
+              Professional plan · €150 · 1 year · 1 device
+            </p>
+            <Link className="btn btn-primary" href="/dashboard/buy">
+              Buy license
+            </Link>
+          </div>
+        )}
 
         <div className="panel" style={{ marginBottom: "1rem" }}>
           <strong>Referral code</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
-            {profile?.referral_code || "—"} (MLM / affiliates in next phase)
+            {profile?.referral_code || "—"} (affiliate network rolls out next)
           </p>
         </div>
 
         <div className="panel">
           <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Licenses</h2>
           {!licenses?.length ? (
-            <p className="muted">No license yet. Purchase flow arrives with crypto checkout.</p>
+            <p className="muted">None yet.</p>
           ) : (
             <table className="table">
               <thead>

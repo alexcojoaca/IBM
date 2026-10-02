@@ -16,8 +16,21 @@ type License = {
   created_at: string;
 };
 
+type Payment = {
+  id: string;
+  user_id: string;
+  status: string;
+  amount_eur: number;
+  currency: string;
+  network: string;
+  tx_hash: string | null;
+  created_at: string;
+  license_id: string | null;
+};
+
 export default function AdminPage() {
   const [licenses, setLicenses] = useState<License[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [email, setEmail] = useState("");
   const [days, setDays] = useState(365);
   const [error, setError] = useState("");
@@ -25,6 +38,7 @@ export default function AdminPage() {
   const [copyMsg, setCopyMsg] = useState("");
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [diag, setDiag] = useState("");
+  const [payMsg, setPayMsg] = useState("");
 
   const load = async () => {
     const supabase = createClient();
@@ -71,6 +85,11 @@ export default function AdminPage() {
       .select("*")
       .order("created_at", { ascending: false });
     setLicenses((data as License[]) || []);
+    const { data: pays } = await supabase
+      .from("payment_orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setPayments((pays as Payment[]) || []);
   };
 
   useEffect(() => {
@@ -130,6 +149,26 @@ export default function AdminPage() {
     load();
   };
 
+  const confirmPayment = async (orderId: string) => {
+    setPayMsg("");
+    const res = await fetch("/api/payments/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_id: orderId }),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      setPayMsg(body.detail || "Confirm failed");
+      return;
+    }
+    setPayMsg(
+      body.license_key
+        ? `Paid → license ${body.license_key} issued`
+        : "Payment confirmed"
+    );
+    load();
+  };
+
   if (allowed === null) {
     return (
       <div className="shell auth-wrap">
@@ -185,6 +224,49 @@ export default function AdminPage() {
       </aside>
       <main className="dash-main">
         <h1>License admin</h1>
+        {payMsg && <p className="ok">{payMsg}</p>}
+
+        <div className="panel" style={{ marginBottom: "1.25rem" }}>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Crypto payments</h2>
+          <p className="muted">Confirm after you see the transfer — issues the €150 license to the buyer.</p>
+          {!payments.length ? (
+            <p className="muted">No payment orders.</p>
+          ) : (
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>Tx</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id}>
+                    <td>{new Date(p.created_at).toLocaleString()}</td>
+                    <td>
+                      <code style={{ fontSize: "0.7rem" }}>{p.user_id.slice(0, 8)}…</code>
+                    </td>
+                    <td>
+                      <code style={{ fontSize: "0.7rem" }}>{p.tx_hash || "—"}</code>
+                    </td>
+                    <td>{p.status}</td>
+                    <td>
+                      {p.status !== "paid" && (
+                        <button className="btn btn-primary" type="button" onClick={() => confirmPayment(p.id)}>
+                          Confirm &amp; issue key
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
         <form className="panel" onSubmit={create} style={{ marginBottom: "1.25rem" }}>
           <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Create key</h2>
           <p className="muted">1 device · default 365 days · copy once and assign to a user email</p>

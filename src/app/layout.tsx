@@ -13,8 +13,9 @@ const dm = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "IBM — Intelligent Balance Manager",
-  description: "Automated Forex trading with MetaTrader 5. License, download, trade.",
+  title: "IBM — International Business Multiplier",
+  description:
+    "International Business Multiplier — license, download, and trade with MetaTrader 5.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

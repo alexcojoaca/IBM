@@ -19,13 +19,16 @@ export default function HomePage() {
         </header>
 
         <section className="hero">
-          <div className="brand" style={{ fontSize: "2rem" }}>
+          <div className="brand" style={{ fontSize: "2.4rem" }}>
             IBM
           </div>
-          <h1>Trade with balance. License. Download. Connect MetaTrader.</h1>
+          <p className="muted" style={{ letterSpacing: "0.04em", marginTop: "-0.35rem" }}>
+            International Business Multiplier
+          </p>
+          <h1>License. Download. Trade on MetaTrader 5.</h1>
           <p>
-            Intelligent Balance Manager — automated Forex on MT5. Buy a license, download the
-            desktop bot, activate once, and keep trading with a dedicated 1-year key.
+            Create your account, buy a Professional license (€150 / year / 1 device), download the
+            Windows bot, and activate with your personal key — always saved in your dashboard.
           </p>
           <div className="hero-cta">
             <Link className="btn btn-primary" href="/register">
@@ -39,29 +42,21 @@ export default function HomePage() {
 
         <section className="section">
           <h2>How it works</h2>
-          <p className="lead">Three steps. No Admin panel for customers — only your dashboard.</p>
+          <p className="lead">One account. Your key. Your bot.</p>
           <div className="grid-3">
             <div className="feature">
-              <h3>1. Create account</h3>
-              <p>Sign up on this platform. Your licenses and downloads live in one place.</p>
+              <h3>1. Account</h3>
+              <p>Register with email and password. Edit profile, language, and settings anytime.</p>
             </div>
             <div className="feature">
-              <h3>2. Get a license</h3>
-              <p>Purchase unlocks a dedicated key (1 device, 1 year). Visible anytime in your dashboard.</p>
+              <h3>2. License €150</h3>
+              <p>Pay with crypto. After confirmation your key appears in Licenses — never lose it.</p>
             </div>
             <div className="feature">
               <h3>3. Download &amp; trade</h3>
-              <p>Install the Windows bot, enter the key once — it is remembered. Connect MT5 and start.</p>
+              <p>Get IBM-Client.zip, enter the key once. Disconnect devices from the dashboard if you switch PC.</p>
             </div>
           </div>
-        </section>
-
-        <section className="section" style={{ paddingBottom: "4rem" }}>
-          <h2>Coming next</h2>
-          <p className="lead">
-            Crypto checkout, affiliate / MLM (3 levels), and online license validation for every
-            installed bot.
-          </p>
         </section>
       </div>
     </div>
