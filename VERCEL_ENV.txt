@@ -1,0 +1,28 @@
+# ============================================================
+# Copiază TOATE aceste variabile în Vercel → Settings → Environment Variables
+# Completează valorile marcate cu COMPLETEAZĂ / păstrează ce e deja ok
+# Environments: bifează Production (+ Preview dacă vrei)
+# După salvare: Deployments → Redeploy
+# ============================================================
+
+# --- Site (URL-ul tău real de pe Vercel, fără slash la final) ---
+NEXT_PUBLIC_SITE_URL=https://COMPLETEAZĂ-URL-VERCEL.vercel.app
+
+# --- Supabase (deja le ai; Settings → API) ---
+NEXT_PUBLIC_SUPABASE_URL=https://ghockgdiqkaehgoxotjr.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=COMPLETEAZĂ_anon_sau_publishable_key
+
+# OBLIGATORIU pentru licențe / plăți (Settings → API → service_role — secret!)
+SUPABASE_SERVICE_ROLE_KEY=COMPLETEAZĂ_service_role_key
+
+# --- Crypto: preț €150, plătit în USDT (aceeași sumă: 150 USDT) ---
+NEXT_PUBLIC_CRYPTO_WALLET=COMPLETEAZĂ_adresa_ta_USDT
+CRYPTO_WALLET_ADDRESS=COMPLETEAZĂ_aceeasi_adresa_USDT
+NEXT_PUBLIC_CRYPTO_NETWORK=TRC20
+CRYPTO_NETWORK=TRC20
+NEXT_PUBLIC_CRYPTO_CURRENCY=USDT
+CRYPTO_CURRENCY=USDT
+NEXT_PUBLIC_CRYPTO_AMOUNT=150
+
+# --- Download bot (link public ZIP, ex. GitHub Releases) ---
+NEXT_PUBLIC_CLIENT_DOWNLOAD_URL=https://github.com/alexcojoaca/IBM/releases/download/IBMClient/IBM.zip

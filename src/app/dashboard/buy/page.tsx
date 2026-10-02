@@ -96,7 +96,11 @@ export default function BuyPage() {
         <div className="panel" style={{ marginBottom: "1rem", maxWidth: 560 }}>
           <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Crypto payment</h2>
           <p>
-            Send <strong>{amountCrypto} {currency}</strong> on <strong>{network}</strong> to:
+            Price: <strong>€150</strong> — pay{" "}
+            <strong>
+              {amountCrypto} {currency}
+            </strong>{" "}
+            on <strong>{network}</strong> to:
           </p>
           {wallet ? (
             <div className="keybox" style={{ marginBottom: "0.75rem" }}>
