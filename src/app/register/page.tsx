@@ -19,23 +19,46 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     setInfo("");
-    const supabase = createClient();
-    const { data, error: err } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
-    });
-    setLoading(false);
-    if (err) {
-      setError(err.message);
-      return;
+
+    try {
+      const supabase = createClient();
+      const origin = window.location.origin;
+
+      const { data, error: err } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: { full_name: fullName.trim() },
+          emailRedirectTo: `${origin}/login`,
+        },
+      });
+
+      if (err) {
+        setError(err.message);
+        return;
+      }
+
+      // Some projects return empty user when email is already registered
+      if (!data.user) {
+        setError("Could not create account. Try another email or log in.");
+        return;
+      }
+
+      if (data.session) {
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      // Email confirmation is ON in Supabase
+      setInfo(
+        "Account created. If email confirmation is enabled in Supabase, open the link from your inbox, then log in. For local testing: Supabase → Authentication → Providers → Email → disable “Confirm email”."
+      );
+    } catch (e: any) {
+      setError(e?.message || "Unexpected error during signup.");
+    } finally {
+      setLoading(false);
     }
-    if (data.session) {
-      router.push("/dashboard");
-      router.refresh();
-      return;
-    }
-    setInfo("Check your email to confirm the account, then log in.");
   };
 
   return (
@@ -54,7 +77,7 @@ export default function RegisterPage() {
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
         <div className="form-row">
-          <label>Password</label>
+          <label>Password (min 8 characters)</label>
           <input
             type="password"
             value={password}
@@ -64,7 +87,7 @@ export default function RegisterPage() {
           />
         </div>
         <button className="btn btn-primary btn-block" disabled={loading}>
-          {loading ? "…" : "Register"}
+          {loading ? "Creating…" : "Register"}
         </button>
         <p className="muted" style={{ marginTop: "1rem" }}>
           Already have an account? <Link href="/login">Log in</Link>

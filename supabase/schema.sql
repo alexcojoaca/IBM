@@ -1,9 +1,9 @@
--- IBM Platform — run this in Supabase → SQL Editor
--- Creates profiles, licenses, and admin helper
+-- IBM Platform — FIX (run in Supabase SQL Editor)
+-- Fixes signup / profile RLS recursion and ensures trigger works
 
 create extension if not exists "pgcrypto";
 
--- Profiles (1:1 with auth.users)
+-- Tables (safe if already exist)
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
@@ -14,7 +14,6 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
--- Licenses
 create table if not exists public.licenses (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references public.profiles(id) on delete set null,
@@ -29,10 +28,6 @@ create table if not exists public.licenses (
   created_at timestamptz not null default now()
 );
 
-create index if not exists licenses_user_id_idx on public.licenses(user_id);
-create index if not exists licenses_key_prefix_idx on public.licenses(key_prefix);
-
--- Device activations (1 device per license)
 create table if not exists public.license_devices (
   id uuid primary key default gen_random_uuid(),
   license_id uuid not null references public.licenses(id) on delete cascade,
@@ -44,7 +39,27 @@ create table if not exists public.license_devices (
   unique (license_id, device_fingerprint)
 );
 
--- Auto-create profile on signup
+create index if not exists licenses_user_id_idx on public.licenses(user_id);
+create index if not exists licenses_key_prefix_idx on public.licenses(key_prefix);
+
+-- Admin check WITHOUT RLS recursion
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to authenticated, anon;
+
+-- Profile on signup
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -58,7 +73,10 @@ begin
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
     upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8))
-  );
+  )
+  on conflict (id) do update set
+    email = excluded.email,
+    full_name = coalesce(nullif(excluded.full_name, ''), public.profiles.full_name);
   return new;
 end;
 $$;
@@ -73,51 +91,46 @@ alter table public.profiles enable row level security;
 alter table public.licenses enable row level security;
 alter table public.license_devices enable row level security;
 
--- Profiles: users see/update self; admins see all
+-- Drop old recursive policies if present
+drop policy if exists "profiles_select_own" on public.profiles;
+drop policy if exists "profiles_update_own" on public.profiles;
+drop policy if exists "licenses_select_own" on public.licenses;
+drop policy if exists "licenses_admin_insert" on public.licenses;
+drop policy if exists "licenses_admin_update" on public.licenses;
+drop policy if exists "devices_select" on public.license_devices;
+drop policy if exists "devices_admin_all" on public.license_devices;
+
 create policy "profiles_select_own"
   on public.profiles for select
-  using (auth.uid() = id or exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'
-  ));
+  using (auth.uid() = id or public.is_admin());
 
 create policy "profiles_update_own"
   on public.profiles for update
-  using (auth.uid() = id);
+  using (auth.uid() = id or public.is_admin());
 
--- Licenses: owner read; admin full
 create policy "licenses_select_own"
   on public.licenses for select
-  using (
-    user_id = auth.uid()
-    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  using (user_id = auth.uid() or public.is_admin());
 
 create policy "licenses_admin_insert"
   on public.licenses for insert
-  with check (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  with check (public.is_admin());
 
 create policy "licenses_admin_update"
   on public.licenses for update
-  using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  using (public.is_admin());
 
--- Devices: admin manage; owner read
 create policy "devices_select"
   on public.license_devices for select
   using (
-    exists (
+    public.is_admin()
+    or exists (
       select 1 from public.licenses l
-      where l.id = license_id
-        and (l.user_id = auth.uid()
-          or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'))
+      where l.id = license_id and l.user_id = auth.uid()
     )
   );
 
 create policy "devices_admin_all"
   on public.license_devices for all
-  using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  using (public.is_admin())
+  with check (public.is_admin());

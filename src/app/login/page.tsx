@@ -16,15 +16,23 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const supabase = createClient();
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (err) {
-      setError(err.message);
-      return;
+    try {
+      const supabase = createClient();
+      const { error: err } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (err) {
+        setError(err.message);
+        return;
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } catch (e: any) {
+      setError(e?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
-    router.push("/dashboard");
-    router.refresh();
   };
 
   return (
