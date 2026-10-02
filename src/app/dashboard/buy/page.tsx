@@ -16,6 +16,14 @@ type Order = {
   license_id: string | null;
 };
 
+type PayConfig = {
+  wallet: string;
+  network: string;
+  currency: string;
+  amount: string;
+  amount_eur: number;
+};
+
 export default function BuyPage() {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -24,11 +32,8 @@ export default function BuyPage() {
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const wallet = process.env.NEXT_PUBLIC_CRYPTO_WALLET || "";
-  const network = process.env.NEXT_PUBLIC_CRYPTO_NETWORK || "TRC20";
-  const currency = process.env.NEXT_PUBLIC_CRYPTO_CURRENCY || "USDT";
-  const amountCrypto = process.env.NEXT_PUBLIC_CRYPTO_AMOUNT || "150";
+  const [copyMsg, setCopyMsg] = useState("");
+  const [cfg, setCfg] = useState<PayConfig | null>(null);
 
   const load = async () => {
     const supabase = createClient();
@@ -55,7 +60,18 @@ export default function BuyPage() {
 
   useEffect(() => {
     load();
+    fetch("/api/payments/config")
+      .then((r) => r.json())
+      .then((j) => setCfg(j))
+      .catch(() => setCfg({ wallet: "", network: "TRC20", currency: "USDT", amount: "150", amount_eur: 150 }));
   }, []);
+
+  const copyWallet = async () => {
+    if (!cfg?.wallet) return;
+    await navigator.clipboard.writeText(cfg.wallet);
+    setCopyMsg("Copied ✓");
+    setTimeout(() => setCopyMsg(""), 2000);
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -84,6 +100,11 @@ export default function BuyPage() {
     }
   };
 
+  const wallet = cfg?.wallet || "";
+  const network = cfg?.network || "TRC20";
+  const currency = cfg?.currency || "USDT";
+  const amountCrypto = cfg?.amount || "150";
+
   return (
     <div className="shell dash">
       <DashNav active="/dashboard/buy" isAdmin={isAdmin} />
@@ -95,21 +116,32 @@ export default function BuyPage() {
 
         <div className="panel" style={{ marginBottom: "1rem", maxWidth: 560 }}>
           <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Crypto payment</h2>
-          <p>
-            Price: <strong>€150</strong> — pay{" "}
-            <strong>
-              {amountCrypto} {currency}
-            </strong>{" "}
-            on <strong>{network}</strong> to:
-          </p>
-          {wallet ? (
-            <div className="keybox" style={{ marginBottom: "0.75rem" }}>
-              {wallet}
-            </div>
+          {!cfg ? (
+            <p className="muted">Loading payment details…</p>
           ) : (
-            <p className="error">
-              Wallet address not configured yet. Admin must set NEXT_PUBLIC_CRYPTO_WALLET on Vercel.
-            </p>
+            <>
+              <p>
+                Price: <strong>€150</strong> — pay{" "}
+                <strong>
+                  {amountCrypto} {currency}
+                </strong>{" "}
+                on <strong>{network}</strong> to:
+              </p>
+              {wallet ? (
+                <div style={{ marginBottom: "0.75rem" }}>
+                  <div className="keybox">{wallet}</div>
+                  <button className="btn" type="button" style={{ marginTop: "0.5rem" }} onClick={copyWallet}>
+                    Copy address
+                  </button>
+                  {copyMsg && <span className="ok" style={{ marginLeft: 8 }}>{copyMsg}</span>}
+                </div>
+              ) : (
+                <p className="error">
+                  Wallet missing on server. On Vercel set CRYPTO_WALLET_ADDRESS (or NEXT_PUBLIC_CRYPTO_WALLET),
+                  then Redeploy.
+                </p>
+              )}
+            </>
           )}
           <p className="muted">
             After paying, paste the transaction hash below. Your license appears under Licenses once
