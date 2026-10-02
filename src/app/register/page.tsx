@@ -34,7 +34,14 @@ export default function RegisterPage() {
       });
 
       if (err) {
-        setError(err.message);
+        const msg = err.message || "";
+        if (/rate limit/i.test(msg)) {
+          setError(
+            "Supabase email limit hit. In Supabase go to: Authentication → Providers → Email → turn OFF “Confirm email”, Save, wait 1 hour (or try another email), then register again."
+          );
+        } else {
+          setError(msg);
+        }
         return;
       }
 
