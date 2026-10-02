@@ -42,12 +42,13 @@ create table if not exists public.license_devices (
 create index if not exists licenses_user_id_idx on public.licenses(user_id);
 create index if not exists licenses_key_prefix_idx on public.licenses(key_prefix);
 
--- Admin check WITHOUT RLS recursion
+-- Admin check: security definer + row_security=off (avoids profiles RLS recursion)
 create or replace function public.is_admin()
 returns boolean
 language sql
 security definer
 set search_path = public
+set row_security = off
 stable
 as $$
   select exists (
@@ -57,7 +58,7 @@ as $$
 $$;
 
 revoke all on function public.is_admin() from public;
-grant execute on function public.is_admin() to authenticated, anon;
+grant execute on function public.is_admin() to authenticated, anon, service_role;
 
 -- Profile on signup
 create or replace function public.handle_new_user()
@@ -93,20 +94,33 @@ alter table public.license_devices enable row level security;
 
 -- Drop old recursive policies if present
 drop policy if exists "profiles_select_own" on public.profiles;
+drop policy if exists "profiles_select_admin" on public.profiles;
 drop policy if exists "profiles_update_own" on public.profiles;
+drop policy if exists "profiles_update_admin" on public.profiles;
 drop policy if exists "licenses_select_own" on public.licenses;
 drop policy if exists "licenses_admin_insert" on public.licenses;
 drop policy if exists "licenses_admin_update" on public.licenses;
 drop policy if exists "devices_select" on public.license_devices;
 drop policy if exists "devices_admin_all" on public.license_devices;
 
+-- Own profile without calling is_admin (prevents infinite recursion)
 create policy "profiles_select_own"
   on public.profiles for select
-  using (auth.uid() = id or public.is_admin());
+  using (auth.uid() = id);
 
 create policy "profiles_update_own"
   on public.profiles for update
-  using (auth.uid() = id or public.is_admin());
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+create policy "profiles_select_admin"
+  on public.profiles for select
+  using (public.is_admin());
+
+create policy "profiles_update_admin"
+  on public.profiles for update
+  using (public.is_admin())
+  with check (public.is_admin());
 
 create policy "licenses_select_own"
   on public.licenses for select
