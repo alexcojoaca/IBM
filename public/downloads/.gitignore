@@ -1,0 +1,4 @@
+# Keep downloadable bot package here after you copy it from IBM bot builds:
+# public/downloads/IBM-Client.zip
+*
+!.gitignore
