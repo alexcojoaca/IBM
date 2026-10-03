@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { issueLicenseForUser } from "@/lib/license-server";
 import { distributeCommissions, unlockAffiliates } from "@/lib/mlm";
+import { payoutCommissions } from "@/lib/tron-payout";
 
 /** Admin confirms crypto payment → license + MLM commissions */
 export async function POST(req: Request) {
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ detail: "Unauthorized" }, { status: 401 });
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profile?.role !== "admin") {
+  if ((profile?.role || "").toLowerCase() !== "admin") {
     return NextResponse.json({ detail: "Admin only" }, { status: 403 });
   }
 
@@ -52,10 +53,18 @@ export async function POST(req: Request) {
     licenseId: license.id,
   });
 
+  let payouts: Awaited<ReturnType<typeof payoutCommissions>>["results"] = [];
+  try {
+    payouts = (await payoutCommissions({ paymentOrderId: order.id })).results;
+  } catch (e: unknown) {
+    console.error("Affiliate payout error:", e);
+  }
+
   return NextResponse.json({
     ok: true,
     license_id: license.id,
     license_key: license.license_key,
     distribution: dist,
+    payouts,
   });
 }

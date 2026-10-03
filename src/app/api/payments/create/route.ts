@@ -106,12 +106,36 @@ export async function POST(req: Request) {
 
   if (error) {
     if (/unique|duplicate/i.test(error.message)) {
-      return NextResponse.json(
-        { detail: "This transaction hash was already used" },
-        { status: 400 }
-      );
+      const { data: existing } = await admin
+        .from("payment_orders")
+        .select("*")
+        .eq("tx_hash", txHash)
+        .maybeSingle();
+      if (!existing || existing.user_id !== user.id) {
+        return NextResponse.json(
+          { detail: "This transaction hash was already used" },
+          { status: 400 }
+        );
+      }
+      if (existing.status === "paid" && existing.license_id) {
+        const { data: lic } = await admin
+          .from("licenses")
+          .select("id, license_key")
+          .eq("id", existing.license_id)
+          .maybeSingle();
+        await unlockAffiliates(user.id);
+        return NextResponse.json({
+          order: existing,
+          license_id: existing.license_id,
+          license_key: lic?.license_key || null,
+          already: true,
+        });
+      }
+      order = existing;
+      error = null;
+    } else {
+      return NextResponse.json({ detail: error.message }, { status: 400 });
     }
-    return NextResponse.json({ detail: error.message }, { status: 400 });
   }
   if (!order) {
     return NextResponse.json({ detail: "Could not create payment order" }, { status: 500 });

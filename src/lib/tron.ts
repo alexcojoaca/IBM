@@ -1,3 +1,5 @@
+import { TronWeb } from "tronweb";
+
 /** Official USDT TRC20 contract on TRON mainnet */
 export const USDT_TRC20 = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
@@ -33,7 +35,21 @@ function normalizeHash(h: string) {
 }
 
 function addressesEqual(a: string, b: string) {
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
+  return asBase58(a).toLowerCase() === asBase58(b).toLowerCase();
+}
+
+/** TronGrid events often return hex (41…) instead of a T… address. */
+function asBase58(addr: string): string {
+  const a = (addr || "").trim();
+  if (!a) return "";
+  if (a.startsWith("T")) return a;
+  try {
+    const hex = a.replace(/^0x/i, "");
+    const full = hex.length === 40 ? `41${hex}` : hex;
+    return TronWeb.address.fromHex(full);
+  } catch {
+    return a;
+  }
 }
 
 type Trc20Row = {
@@ -153,8 +169,8 @@ async function fetchTransferByTxId(
       if ((ev.event_name || "").toLowerCase() !== "transfer") continue;
       const contract = (ev.contract_address || "").trim();
       if (contract && !addressesEqual(contract, USDT_TRC20)) continue;
-      const from = ev.result?.from || "";
-      const to = ev.result?.to || "";
+      const from = asBase58(ev.result?.from || "");
+      const to = asBase58(ev.result?.to || "");
       const raw = Number(ev.result?.value || 0);
       const amount = raw / 1e6;
       if (!to) continue;

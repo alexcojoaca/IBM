@@ -6,9 +6,14 @@ import { distributeCommissions, unlockAffiliates } from "@/lib/mlm";
 
 /**
  * Test unlock: simulates a recognized €150 payment.
- * Code from env MLM_TEST_CODE (default IBM-TEST-MLM-2026).
+ * Disabled on the live site unless MLM_TEST_CODE is set explicitly.
  */
 export async function POST(req: Request) {
+  const expected = (process.env.MLM_TEST_CODE || "").trim().toUpperCase();
+  if (!expected) {
+    return NextResponse.json({ detail: "Not found" }, { status: 404 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -17,7 +22,6 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const code = String(body.code || "").trim().toUpperCase();
-  const expected = (process.env.MLM_TEST_CODE || "IBM-TEST-MLM-2026").trim().toUpperCase();
   if (!code || code !== expected) {
     return NextResponse.json({ detail: "Invalid test code" }, { status: 400 });
   }
