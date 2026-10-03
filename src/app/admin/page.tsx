@@ -13,6 +13,15 @@ type ProfileBrief = {
   email: string | null;
 };
 
+type ProfileRow = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  role: string | null;
+  referral_code: string | null;
+  created_at: string;
+};
+
 type License = {
   id: string;
   license_key: string;
@@ -44,6 +53,8 @@ type DeviceRow = {
   is_active: boolean;
 };
 
+type TabId = "payments" | "create" | "network" | "clients";
+
 function statusClass(status: string) {
   if (status === "active" || status === "paid") return "badge badge-ok";
   if (status === "pending" || status === "submitted") return "badge badge-warn";
@@ -52,8 +63,10 @@ function statusClass(status: string) {
 
 export default function AdminPage() {
   const { t } = useI18n();
+  const [tab, setTab] = useState<TabId>("payments");
   const [licenses, setLicenses] = useState<License[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [activeDevices, setActiveDevices] = useState(0);
   const [email, setEmail] = useState("");
   const [days, setDays] = useState(365);
@@ -65,7 +78,9 @@ export default function AdminPage() {
   const [payMsg, setPayMsg] = useState("");
   const [q, setQ] = useState("");
   const [adminName, setAdminName] = useState("");
+  const [adminId, setAdminId] = useState("");
   const [forest, setForest] = useState<PyramidNode[]>([]);
+  const [busyDelete, setBusyDelete] = useState<string | null>(null);
 
   const load = async () => {
     const supabase = createClient();
@@ -77,6 +92,7 @@ export default function AdminPage() {
       setAllowed(false);
       return;
     }
+    setAdminId(user.id);
     const { data: profile, error: profileErr } = await supabase
       .from("profiles")
       .select("role, email, full_name")
@@ -118,6 +134,12 @@ export default function AdminPage() {
       .order("created_at", { ascending: false });
     setPayments((pays as Payment[]) || []);
 
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, role, referral_code, created_at")
+      .order("created_at", { ascending: false });
+    setProfiles((profs as ProfileRow[]) || []);
+
     const { data: devices } = await supabase
       .from("license_devices")
       .select("id, license_id, is_active")
@@ -146,12 +168,23 @@ export default function AdminPage() {
     });
   }, [licenses, q]);
 
+  const filteredProfiles = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return profiles;
+    return profiles.filter((p) => {
+      const name = (p.full_name || "").toLowerCase();
+      const mail = (p.email || "").toLowerCase();
+      const code = (p.referral_code || "").toLowerCase();
+      return name.includes(s) || mail.includes(s) || code.includes(s) || (p.role || "").includes(s);
+    });
+  }, [profiles, q]);
+
   const stats = useMemo(() => {
     const active = licenses.filter((l) => l.status === "active").length;
-    const clients = new Set(licenses.map((l) => l.user_id).filter(Boolean)).size;
+    const clients = profiles.filter((p) => (p.role || "").toLowerCase() !== "admin").length;
     const pendingPay = payments.filter((p) => p.status === "pending" || p.status === "submitted").length;
     return { total: licenses.length, active, clients, pendingPay, activeDevices };
-  }, [licenses, payments, activeDevices]);
+  }, [licenses, payments, activeDevices, profiles]);
 
   const create = async (e: FormEvent) => {
     e.preventDefault();
@@ -228,6 +261,27 @@ export default function AdminPage() {
     load();
   };
 
+  const deleteAccount = async (userId: string, label: string) => {
+    if (!window.confirm(`${t("admin.deleteConfirm")}\n\n${label}`)) return;
+    setBusyDelete(userId);
+    setPayMsg("");
+    try {
+      const res = await fetch("/api/admin/delete-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.detail || t("admin.deleteFailed"));
+      setPayMsg(t("admin.deleted"));
+      await load();
+    } catch (err: unknown) {
+      setPayMsg(err instanceof Error ? err.message : t("admin.deleteFailed"));
+    } finally {
+      setBusyDelete(null);
+    }
+  };
+
   if (allowed === null) {
     return (
       <div className="shell auth-wrap">
@@ -271,6 +325,13 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  const tabs: { id: TabId; label: string }[] = [
+    { id: "payments", label: t("admin.tabPayments") },
+    { id: "create", label: t("admin.tabCreate") },
+    { id: "network", label: t("admin.tabNetwork") },
+    { id: "clients", label: t("admin.tabClients") },
+  ];
 
   return (
     <div className="shell dash">
@@ -328,180 +389,269 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {payMsg && <p className="ok">{payMsg}</p>}
-
-        <div className="panel" style={{ marginBottom: "1.25rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.payments")}</h2>
-          <p className="muted">{t("admin.paymentsSub")}</p>
-          {!payments.length ? (
-            <p className="muted">{t("admin.noPayments")}</p>
-          ) : (
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>{t("admin.colClient")}</th>
-                    <th>{t("admin.colEmail")}</th>
-                    <th>{t("admin.colDate")}</th>
-                    <th>{t("admin.colAmount")}</th>
-                    <th>{t("admin.colTx")}</th>
-                    <th>{t("admin.colStatus")}</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map((p) => (
-                    <tr key={p.id}>
-                      <td>
-                        <strong>{p.profiles?.full_name || "—"}</strong>
-                      </td>
-                      <td>{p.profiles?.email || "—"}</td>
-                      <td>{new Date(p.created_at).toLocaleString()}</td>
-                      <td>
-                        €{p.amount_eur} · {p.currency} {p.network}
-                      </td>
-                      <td>
-                        <code className="tiny">{p.tx_hash || "—"}</code>
-                      </td>
-                      <td>
-                        <span className={statusClass(p.status)}>{p.status}</span>
-                      </td>
-                      <td>
-                        {p.status !== "paid" && (
-                          <button
-                            className="btn btn-primary"
-                            type="button"
-                            onClick={() => confirmPayment(p.id)}
-                          >
-                            {t("admin.confirmIssue")}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        <form className="panel" onSubmit={create} style={{ marginBottom: "1.25rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.create")}</h2>
-          <p className="muted">{t("admin.createSub")}</p>
-          {error && <p className="error">{error}</p>}
-          {created && (
-            <div style={{ marginBottom: "0.75rem" }}>
-              <div className="keybox">{created}</div>
-              <div className="row" style={{ marginTop: "0.5rem" }}>
-                <button type="button" className="btn btn-primary" onClick={() => copyText(created)}>
-                  {t("admin.copyKey")}
-                </button>
-              </div>
-            </div>
-          )}
-          <div className="row">
-            <div className="form-row" style={{ flex: 1, minWidth: 220, marginBottom: 0 }}>
-              <label>{t("admin.clientEmail")}</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="client@email.com"
-              />
-            </div>
-            <div className="form-row" style={{ width: 120, marginBottom: 0 }}>
-              <label>{t("admin.days")}</label>
-              <input
-                type="number"
-                min={1}
-                value={days}
-                onChange={(e) => setDays(Number(e.target.value))}
-              />
-            </div>
-            <button className="btn btn-primary" style={{ alignSelf: "end" }}>
-              {t("admin.generate")}
+        <div className="admin-tabs">
+          {tabs.map((tb) => (
+            <button
+              key={tb.id}
+              type="button"
+              className={tab === tb.id ? "active" : undefined}
+              onClick={() => setTab(tb.id)}
+            >
+              {tb.label}
             </button>
-          </div>
-        </form>
-
-        <div className="panel" style={{ marginBottom: "1.25rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.network")}</h2>
-          <p className="muted">{t("admin.networkSub")}</p>
-          <AdminNetworkBoard trees={forest} />
+          ))}
         </div>
 
-        <div className="panel">
-          <div className="admin-head" style={{ marginBottom: "0.75rem" }}>
-            <h2 style={{ margin: 0, fontFamily: "var(--font-display)" }}>{t("admin.clients")}</h2>
-            <input
-              className="search-input"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("admin.search")}
-            />
-          </div>
-          {!filteredLicenses.length ? (
-            <p className="muted">{t("admin.noMatch")}</p>
-          ) : (
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>{t("admin.colClient")}</th>
-                    <th>{t("admin.colEmail")}</th>
-                    <th>{t("admin.colKey")}</th>
-                    <th>{t("admin.colPlan")}</th>
-                    <th>{t("admin.colStatus")}</th>
-                    <th>{t("admin.colExpires")}</th>
-                    <th>{t("admin.colActions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLicenses.map((l) => (
-                    <tr key={l.id}>
-                      <td>
-                        <strong>{l.profiles?.full_name || t("admin.unassigned")}</strong>
-                      </td>
-                      <td>{l.profiles?.email || "—"}</td>
-                      <td>
-                        <div className="row" style={{ alignItems: "center" }}>
-                          <code className="tiny">{l.license_key}</code>
-                          <button
-                            className="btn"
-                            type="button"
-                            style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
-                            onClick={() => copyText(l.license_key)}
-                          >
-                            {t("common.copy")}
-                          </button>
-                        </div>
-                      </td>
-                      <td>{l.plan}</td>
-                      <td>
-                        <span className={statusClass(l.status)}>{l.status}</span>
-                      </td>
-                      <td>
-                        {l.expires_at ? new Date(l.expires_at).toLocaleDateString() : "—"}
-                      </td>
-                      <td>
-                        <div className="row">
-                          <button className="btn" type="button" onClick={() => setStatus(l.id, "suspended")}>
-                            {t("admin.suspend")}
-                          </button>
-                          <button className="btn" type="button" onClick={() => setStatus(l.id, "active")}>
-                            {t("admin.reactivate")}
-                          </button>
-                          <button className="btn" type="button" onClick={() => setStatus(l.id, "revoked")}>
-                            {t("admin.revoke")}
-                          </button>
-                        </div>
-                      </td>
+        {payMsg && <p className={/fail|eșuat|error/i.test(payMsg) ? "error" : "ok"}>{payMsg}</p>}
+
+        {tab === "payments" && (
+          <div className="panel">
+            <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.payments")}</h2>
+            <p className="muted">{t("admin.paymentsSub")}</p>
+            {!payments.length ? (
+              <p className="muted">{t("admin.noPayments")}</p>
+            ) : (
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>{t("admin.colClient")}</th>
+                      <th>{t("admin.colEmail")}</th>
+                      <th>{t("admin.colDate")}</th>
+                      <th>{t("admin.colAmount")}</th>
+                      <th>{t("admin.colTx")}</th>
+                      <th>{t("admin.colStatus")}</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {payments.map((p) => (
+                      <tr key={p.id}>
+                        <td>
+                          <strong>{p.profiles?.full_name || "—"}</strong>
+                        </td>
+                        <td>{p.profiles?.email || "—"}</td>
+                        <td>{new Date(p.created_at).toLocaleString()}</td>
+                        <td>
+                          €{p.amount_eur} · {p.currency} {p.network}
+                        </td>
+                        <td>
+                          <code className="tiny">{p.tx_hash || "—"}</code>
+                        </td>
+                        <td>
+                          <span className={statusClass(p.status)}>{p.status}</span>
+                        </td>
+                        <td>
+                          {p.status !== "paid" && (
+                            <button
+                              className="btn btn-primary"
+                              type="button"
+                              onClick={() => confirmPayment(p.id)}
+                            >
+                              {t("admin.confirmIssue")}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "create" && (
+          <form className="panel" onSubmit={create} style={{ maxWidth: 640 }}>
+            <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.create")}</h2>
+            <p className="muted">{t("admin.createSub")}</p>
+            {error && <p className="error">{error}</p>}
+            {created && (
+              <div style={{ marginBottom: "0.75rem" }}>
+                <div className="keybox">{created}</div>
+                <div className="row" style={{ marginTop: "0.5rem" }}>
+                  <button type="button" className="btn btn-primary" onClick={() => copyText(created)}>
+                    {t("admin.copyKey")}
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="row">
+              <div className="form-row" style={{ flex: 1, minWidth: 220, marginBottom: 0 }}>
+                <label>{t("admin.clientEmail")}</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="client@email.com"
+                />
+              </div>
+              <div className="form-row" style={{ width: 120, marginBottom: 0 }}>
+                <label>{t("admin.days")}</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={days}
+                  onChange={(e) => setDays(Number(e.target.value))}
+                />
+              </div>
+              <button className="btn btn-primary" style={{ alignSelf: "end" }}>
+                {t("admin.generate")}
+              </button>
             </div>
-          )}
-        </div>
+          </form>
+        )}
+
+        {tab === "network" && (
+          <div className="panel">
+            <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.network")}</h2>
+            <p className="muted">{t("admin.networkSub")}</p>
+            <AdminNetworkBoard trees={forest} />
+          </div>
+        )}
+
+        {tab === "clients" && (
+          <>
+            <div className="panel" style={{ marginBottom: "1.25rem" }}>
+              <div className="admin-head" style={{ marginBottom: "0.75rem" }}>
+                <h2 style={{ margin: 0, fontFamily: "var(--font-display)" }}>{t("admin.profiles")}</h2>
+                <input
+                  className="search-input"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t("admin.search")}
+                />
+              </div>
+              {!filteredProfiles.length ? (
+                <p className="muted">{t("admin.noProfiles")}</p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>{t("admin.colClient")}</th>
+                        <th>{t("admin.colEmail")}</th>
+                        <th>{t("admin.colRole")}</th>
+                        <th>{t("dash.referral")}</th>
+                        <th>{t("admin.colActions")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredProfiles.map((p) => (
+                        <tr key={p.id}>
+                          <td>
+                            <strong>{p.full_name || "—"}</strong>
+                          </td>
+                          <td>{p.email || "—"}</td>
+                          <td>{p.role || "user"}</td>
+                          <td>
+                            <code className="tiny">{p.referral_code || "—"}</code>
+                          </td>
+                          <td>
+                            {p.id !== adminId && (p.role || "").toLowerCase() !== "admin" ? (
+                              <button
+                                className="btn btn-danger"
+                                type="button"
+                                disabled={busyDelete === p.id}
+                                onClick={() =>
+                                  deleteAccount(p.id, `${p.full_name || ""} ${p.email || ""}`.trim())
+                                }
+                              >
+                                {busyDelete === p.id ? "…" : t("admin.deleteAccount")}
+                              </button>
+                            ) : (
+                              <span className="muted">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="panel">
+              <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.clients")}</h2>
+              {!filteredLicenses.length ? (
+                <p className="muted">{t("admin.noMatch")}</p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>{t("admin.colClient")}</th>
+                        <th>{t("admin.colEmail")}</th>
+                        <th>{t("admin.colKey")}</th>
+                        <th>{t("admin.colPlan")}</th>
+                        <th>{t("admin.colStatus")}</th>
+                        <th>{t("admin.colExpires")}</th>
+                        <th>{t("admin.colActions")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredLicenses.map((l) => (
+                        <tr key={l.id}>
+                          <td>
+                            <strong>{l.profiles?.full_name || t("admin.unassigned")}</strong>
+                          </td>
+                          <td>{l.profiles?.email || "—"}</td>
+                          <td>
+                            <div className="row" style={{ alignItems: "center" }}>
+                              <code className="tiny">{l.license_key}</code>
+                              <button
+                                className="btn"
+                                type="button"
+                                style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
+                                onClick={() => copyText(l.license_key)}
+                              >
+                                {t("common.copy")}
+                              </button>
+                            </div>
+                          </td>
+                          <td>{l.plan}</td>
+                          <td>
+                            <span className={statusClass(l.status)}>{l.status}</span>
+                          </td>
+                          <td>
+                            {l.expires_at ? new Date(l.expires_at).toLocaleDateString() : "—"}
+                          </td>
+                          <td>
+                            <div className="row">
+                              <button className="btn" type="button" onClick={() => setStatus(l.id, "suspended")}>
+                                {t("admin.suspend")}
+                              </button>
+                              <button className="btn" type="button" onClick={() => setStatus(l.id, "active")}>
+                                {t("admin.reactivate")}
+                              </button>
+                              <button className="btn" type="button" onClick={() => setStatus(l.id, "revoked")}>
+                                {t("admin.revoke")}
+                              </button>
+                              {l.user_id && l.user_id !== adminId && (
+                                <button
+                                  className="btn btn-danger"
+                                  type="button"
+                                  disabled={busyDelete === l.user_id}
+                                  onClick={() =>
+                                    deleteAccount(
+                                      l.user_id!,
+                                      `${l.profiles?.full_name || ""} ${l.profiles?.email || ""}`.trim()
+                                    )
+                                  }
+                                >
+                                  {busyDelete === l.user_id ? "…" : t("admin.deleteAccount")}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );
