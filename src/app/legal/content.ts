@@ -5,7 +5,7 @@ const termsRo: LegalBlock[] = [
     h: "1. Părțile și acceptarea",
     p: [
       "Prezentele termeni și condiții («Termenii») reglementează accesul la site-ul IBM («Site-ul») și folosirea contului, a licenței software, a botului pentru MetaTrader 5 și a programului de afiliere (împreună, «Serviciul»). Operatorul Serviciului este denumit în continuare «IBM», «noi» sau «Operatorul». Persoana care își creează cont este «Utilizatorul».",
-      "Crearea contului, bifarea căsuței de accept și folosirea Serviciului constituie acceptarea integrală a Termenilor și a Politicii de confidențialitate, în versiunea afișată la data acceptării. Dacă nu ești de acord, nu îți crea cont și nu folosi Serviciul.",
+      "Crearea contului, bifarea căsuței de accept și folosirea Serviciului constituie acceptarea integrală a Termenilor și a Politicii de confidențialitate, în textul afișat atunci. Dacă nu ești de acord, nu îți crea cont și nu folosi Serviciul.",
       "Termenii sunt un document contractual. Nu sunt o ofertă de consultanță juridică, fiscală sau de investiții. Limbajul este intenționat formal.",
     ],
   },
@@ -76,7 +76,7 @@ const termsRo: LegalBlock[] = [
     h: "10. Disponibilitate și modificări",
     p: [
       "Serviciul este furnizat «ca atare» și «după disponibilitate». Putem modifica, întrerupe sau retrage funcții, inclusiv botul, site-ul sau afilierea, cu sau fără anunț prealabil, în măsura permisă de lege.",
-      "Putem actualiza Termenii. Versiunea nouă se aplică de la publicare pentru folosirea ulterioară. Data versiunii acceptate rămâne înregistrată în cont.",
+      "Putem actualiza Termenii. Textul nou se aplică de la publicare pentru folosirea ulterioară. Acceptul deja salvat rămâne în cont.",
     ],
   },
   {
@@ -84,7 +84,7 @@ const termsRo: LegalBlock[] = [
     p: [
       "În măsura maximă permisă de legea aplicabilă, IBM nu răspunde pentru pierderi de tranzacționare, pierderi de profit, pierderi de date, întreruperi, erori de cotație, decizii ale brokerului, eșecuri ale MetaTrader 5, eșecuri ale rețelei blockchain, acte ale furnizorilor de hosting sau pentru orice daună indirectă, incidentală ori consecventă.",
       "În măsura maximă permisă de lege, răspunderea totală a Operatorului față de un Utilizator, pentru toate pretențiile legate de Serviciu, este limitată la suma plătită efectiv de acel Utilizator către IBM pentru licență în cele trei luni dinaintea faptului care naște pretenția. Dacă nu a plătit nimic, limita este zero.",
-      "Nimic din acești Termeni nu exclude răspunderea care nu poate fi exclusă legal, inclusiv, unde legea o impune, pentru dol, vinovăție gravă sau drepturi imperative ale consumatorilor. Dacă ești consumator în Uniunea Europeană, păstrezi drepturile care nu pot fi înlăturate prin contract.",
+      "Nimic din acești Termeni nu exclude răspunderea care nu poate fi exclusă de legea aplicabilă utilizatorului.",
     ],
   },
   {
@@ -103,14 +103,13 @@ const termsRo: LegalBlock[] = [
   {
     h: "14. Legea aplicabilă",
     p: [
-      "Termenii sunt guvernați de legea română, fără a privea consumatorul de protecția imperativă din țara lui de reședință, atunci când o astfel de protecție se aplică. Instanțele din România sunt competente, sub aceeași rezervă.",
-      "Dacă o clauză este nulă, restul rămâne în vigoare.",
+      "Serviciul este internațional. Se aplică legea din țara utilizatorului. Dacă o clauză este nulă acolo, restul rămâne în vigoare.",
     ],
   },
   {
     h: "15. Contact",
     p: [
-      "Pentru întrebări despre Termeni, scrie din contul cu care te-ai înregistrat, ca să putem identifica acceptarea salvată. Versiunea acestui document este 2026-10-03.",
+      "Pentru întrebări despre Termeni, scrie din contul cu care te-ai înregistrat, ca să putem identifica acceptarea salvată.",
     ],
   },
 ];
@@ -127,7 +126,7 @@ const privacyRo: LegalBlock[] = [
     h: "2. Ce date colectăm",
     p: [
       "Date de cont: nume, email, parolă stocată de furnizorul de autentificare sub formă protejată, limbă, telefon și țară dacă le completezi, cod de recomandare și relația de recomandare.",
-      "Date tehnice: identificatori de dispozitiv folosiți la activarea licenței, jurnale de acces, adresă IP aproximativă prin infrastructura de hosting, momentul acceptării documentelor legale și versiunea acceptată.",
+      "Date tehnice: identificatori de dispozitiv folosiți la activarea licenței, jurnale de acces, adresă IP aproximativă prin infrastructura de hosting și momentul acceptării documentelor legale.",
       "Date de plată: hash de tranzacție, rețea, adresă de wallet publică folosită la plată sau la afiliere, stare comandă. Nu îți cerem cheia privată a wallet-ului.",
       "Nu îți cerem parola de la broker și nu o stocăm intenționat. Nu o introduce în formularele noastre.",
     ],
@@ -149,7 +148,7 @@ const privacyRo: LegalBlock[] = [
   {
     h: "5. Cui îi sunt transmise",
     p: [
-      "Folosim furnizori tehnici pentru autentificare, bază de date și găzduire, inclusiv Supabase și Vercel, care pot prelucra date în Uniunea Europeană sau în alte țări, cu garanțiile prevăzute de acești furnizori.",
+      "Folosim furnizori tehnici pentru autentificare, bază de date și găzduire, inclusiv Supabase și Vercel, care pot prelucra date în țara lor sau în alte țări, cu garanțiile prevăzute de acești furnizori.",
       "Putem divulga date dacă legea, o autoritate sau apărarea unui drept o cere. Nu vindem liste de emailuri.",
     ],
   },
@@ -175,7 +174,7 @@ const privacyRo: LegalBlock[] = [
   {
     h: "9. Modificări",
     p: [
-      "Putem actualiza politica. Versiunea curentă este 2026-10-03. Folosirea în continuare după publicare înseamnă că ai luat cunoștință de textul nou, fără a șterge acceptul deja salvat pentru versiunea anterioară.",
+      "Putem actualiza politica. Folosirea în continuare după publicare înseamnă că ai luat cunoștință de textul nou, fără a șterge acceptul deja salvat.",
     ],
   },
 ];
@@ -185,7 +184,7 @@ const termsEn: LegalBlock[] = [
     h: "1. Parties and acceptance",
     p: [
       "These terms govern access to the IBM website and use of the account, the software license, the MetaTrader 5 bot, and the affiliate program (together, the Service). The operator is called IBM or we. The person who creates an account is the User.",
-      "Creating an account, ticking the acceptance box, and using the Service is full acceptance of these Terms and the Privacy Policy in the version shown on that date. If you disagree, do not create an account.",
+      "Creating an account, ticking the acceptance box, and using the Service is full acceptance of these Terms and the Privacy Policy in the text shown then. If you disagree, do not create an account.",
       "This is a contract. It is not legal, tax, or investment advice. The wording is formal on purpose.",
     ],
   },
@@ -256,7 +255,7 @@ const termsEn: LegalBlock[] = [
     h: "10. Availability and changes",
     p: [
       "The Service is provided as is and as available. We may change, pause, or remove features, including the bot, the site, or affiliates, with or without notice, to the extent the law allows.",
-      "We may update these Terms. The new version applies from publication to later use. The version you accepted stays recorded on the account.",
+      "We may update these Terms. The new text applies from publication to later use. The acceptance already saved stays on the account.",
     ],
   },
   {
@@ -264,7 +263,7 @@ const termsEn: LegalBlock[] = [
     p: [
       "To the maximum extent permitted by applicable law, IBM is not liable for trading losses, lost profits, lost data, outages, quote errors, broker decisions, MetaTrader 5 failures, blockchain failures, hosting failures, or any indirect or consequential damage.",
       "To the maximum extent permitted by law, our total liability to a User for all claims related to the Service is limited to the amount that User actually paid IBM for a license in the three months before the event. If they paid nothing, the limit is zero.",
-      "Nothing here excludes liability that cannot legally be excluded, including, where the law requires it, for fraud, gross fault, or mandatory consumer rights. If you are a consumer in the European Union, you keep the rights that a contract cannot remove.",
+      "Nothing here excludes liability that the law applicable to the user does not allow to be excluded.",
     ],
   },
   {
@@ -282,8 +281,7 @@ const termsEn: LegalBlock[] = [
   {
     h: "14. Law",
     p: [
-      "These Terms are governed by Romanian law, without depriving a consumer of mandatory protection in their country of residence where that protection applies. Courts in Romania have jurisdiction, with the same reservation.",
-      "If a clause is void, the rest stays in force. Document version 2026-10-03.",
+      "The Service is international. The law of the user’s country applies. If a clause is void there, the rest stays in force.",
     ],
   },
 ];
@@ -300,7 +298,7 @@ const privacyEn: LegalBlock[] = [
     h: "2. What we collect",
     p: [
       "Account data: name, email, a password stored by the authentication provider in protected form, language, phone and country if you fill them in, referral code, and referral relationship.",
-      "Technical data: device identifiers used to activate a license, access logs, an approximate IP through the host, the time you accepted the legal documents, and the version accepted.",
+      "Technical data: device identifiers used to activate a license, access logs, an approximate IP through the host, and the time you accepted the legal documents.",
       "Payment data: transaction hash, network, the public wallet address used for a payment or an affiliate payout, and order status. We do not ask for your wallet private key.",
       "We do not ask for your broker password and we do not intend to store it. Do not type it into our forms.",
     ],
@@ -322,7 +320,7 @@ const privacyEn: LegalBlock[] = [
   {
     h: "5. Who receives data",
     p: [
-      "We use technical providers for authentication, database, and hosting, including Supabase and Vercel. They may process data in the European Union or elsewhere, under their own safeguards.",
+      "We use technical providers for authentication, database, and hosting, including Supabase and Vercel. They may process data in their own country or elsewhere, under their own safeguards.",
       "We may disclose data if the law, an authority, or the defense of a right requires it. We do not sell email lists.",
     ],
   },
@@ -336,7 +334,7 @@ const privacyEn: LegalBlock[] = [
     h: "7. Security and children",
     p: [
       "We take reasonable technical and organizational measures. No internet system is free of risk. We do not guarantee absolute security.",
-      "The Service is not for anyone under 18. We do not knowingly collect children’s data. Version 2026-10-03.",
+      "The Service is not for anyone under 18. We do not knowingly collect children’s data.",
     ],
   },
 ];

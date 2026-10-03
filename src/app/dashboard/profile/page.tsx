@@ -6,7 +6,6 @@ import { DashNav } from "@/components/DashNav";
 import { createClient } from "@/lib/supabase/client";
 import { LANGS, type LangCode } from "@/lib/langs";
 import { useI18n } from "@/i18n/LanguageProvider";
-import { TERMS_VERSION } from "@/lib/legal";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -137,7 +136,7 @@ export default function ProfilePage() {
           </div>
           {termsAt && (
             <p className="muted">
-              {new Date(termsAt).toLocaleString()} · terms {TERMS_VERSION}
+              {new Date(termsAt).toLocaleString()}
             </p>
           )}
           <button className="btn btn-primary" type="submit">
