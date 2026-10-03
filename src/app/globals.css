@@ -450,6 +450,45 @@ select {
   margin: 0;
 }
 
+.lp-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.lp-cards article {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1.25rem 1.2rem 1.35rem;
+}
+
+.lp-cards h2 {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.45rem;
+}
+
+.lp-cards p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.lp-desk h2 {
+  max-width: 18ch;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.lp-desk p:last-child {
+  max-width: 42rem;
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: 1.05rem;
+}
+
 .lp-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -558,7 +597,8 @@ select {
 @media (max-width: 800px) {
   .lp-stats,
   .lp-split,
-  .lp-rules {
+  .lp-rules,
+  .lp-cards {
     grid-template-columns: 1fr;
   }
 

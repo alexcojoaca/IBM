@@ -16,7 +16,7 @@ const dm = DM_Sans({
 export const metadata: Metadata = {
   title: "IBM — International Business Multiplier",
   description:
-    "IBM is a rules-based MetaTrader 5 desk and a three-level affiliate program. License payments are verified on-chain.",
+    "IBM is an automated MetaTrader 5 bot built like a systematic trading desk, with a three-level network.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
