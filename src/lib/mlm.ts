@@ -18,18 +18,19 @@ export type TreeNode = {
 };
 
 /** Walk up to 3 sponsors above the buyer */
-export async function getUpline(buyerId: string) {
+export async function getUpline(buyerId: string): Promise<{ id: string; level: number }[]> {
   const supabase = createServiceClient();
   const upline: { id: string; level: number }[] = [];
   let currentId: string | null = buyerId;
 
   for (let level = 1; level <= 3; level++) {
-    const { data }: { data: { referred_by: string | null } | null } = await supabase
+    if (!currentId) break;
+    const result = await supabase
       .from("profiles")
       .select("referred_by")
       .eq("id", currentId)
       .maybeSingle();
-    const parentId = data?.referred_by || null;
+    const parentId: string | null = (result.data?.referred_by as string | null) || null;
     if (!parentId) break;
     upline.push({ id: parentId, level });
     currentId = parentId;
