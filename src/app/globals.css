@@ -421,6 +421,152 @@ select {
   word-break: break-all;
 }
 
+.lp-hero {
+  padding: 4.5rem 0 2.5rem;
+  max-width: 820px;
+}
+
+.lp-kicker {
+  margin: 0 0 0.8rem;
+  color: var(--accent);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.lp-hero h1 {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  margin: 0 0 1rem;
+}
+
+.lp-lead {
+  color: var(--muted);
+  font-size: 1.12rem;
+  line-height: 1.6;
+  max-width: 40rem;
+  margin: 0;
+}
+
+.lp-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.lp-stats div {
+  padding: 1.25rem 1rem 1.25rem 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.lp-stats strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: -0.03em;
+}
+
+.lp-stats span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.lp-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.lp-split h3,
+.lp .panel h3,
+.lp-rules h3 {
+  font-family: var(--font-display), sans-serif;
+  margin: 0 0 0.55rem;
+  letter-spacing: -0.02em;
+}
+
+.lp-split p,
+.lp .panel p {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0 0 0.9rem;
+}
+
+.lp-split ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--ink);
+  display: grid;
+  gap: 0.4rem;
+}
+
+.lp-rows {
+  margin: 0;
+}
+
+.lp-rows div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.lp-rows dt {
+  color: var(--muted);
+}
+
+.lp-rows dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-prose p {
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 0 0 1rem;
+  max-width: 46rem;
+}
+
+.lp-rules {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.lp-stay p {
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 42rem;
+  margin: 0 0 1.25rem;
+}
+
+.lp-foot {
+  border-top: 1px solid var(--line);
+  padding: 1.5rem 0 2.5rem;
+}
+
+.lp-foot p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  max-width: 46rem;
+  margin: 0;
+}
+
+@media (max-width: 800px) {
+  .lp-stats,
+  .lp-split,
+  .lp-rules {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-actions .btn {
+    display: none;
+  }
+}
+
 .search-input {
   background: var(--bg);
   border: 1px solid var(--line);
