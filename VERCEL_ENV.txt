@@ -26,7 +26,8 @@ TRON_PRIVATE_KEY=COMPLETEAZĂ_cheia_privata_hex_fara_0x
 
 NEXT_PUBLIC_CLIENT_DOWNLOAD_URL=https://github.com/alexcojoaca/IBM/releases/download/IBMClient/IBM.zip
 
-# Optional MLM test unlock (does not replace real crypto verify)
-MLM_TEST_CODE=IBM-TEST-MLM-2026
+# Private owner test code. Set only on Vercel as a Secret. Never NEXT_PUBLIC_ and never commit the value.
+# Paste it in the payment hash box while logged in as admin to issue a test license. No USDT is sent.
+MLM_TEST_CODE=
 
 # After deploy: run supabase/payments_tron.sql in Supabase SQL Editor

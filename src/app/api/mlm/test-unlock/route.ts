@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { issueLicenseForUser } from "@/lib/license-server";
-import { distributeCommissions, unlockAffiliates } from "@/lib/mlm";
+import { unlockAffiliates } from "@/lib/mlm";
 
 /**
  * Test unlock: simulates a recognized €150 payment.
@@ -31,10 +31,13 @@ export async function POST(req: Request) {
   // Ensure referral_code exists
   const { data: profile } = await admin
     .from("profiles")
-    .select("id, referral_code, affiliates_unlocked")
+    .select("id, role, referral_code, affiliates_unlocked")
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) return NextResponse.json({ detail: "Profile missing" }, { status: 400 });
+  if ((profile.role || "").toLowerCase() !== "admin") {
+    return NextResponse.json({ detail: "This code works only on the admin account" }, { status: 403 });
+  }
 
   if (!profile.referral_code) {
     const codeNew = Math.random().toString(36).slice(2, 10).toUpperCase();
@@ -59,10 +62,7 @@ export async function POST(req: Request) {
     licenseKey = lic.license_key;
   }
 
-  // Fake payment order for ledger
-  const { data: order } = await admin
-    .from("payment_orders")
-    .insert({
+  await admin.from("payment_orders").insert({
       user_id: user.id,
       amount_eur: 150,
       currency: "USDT",
@@ -73,21 +73,13 @@ export async function POST(req: Request) {
       paid_at: new Date().toISOString(),
       license_id: licenseId,
       admin_note: "MLM test unlock code",
-    })
-    .select("id")
-    .single();
+    });
 
   await unlockAffiliates(user.id);
-  const dist = await distributeCommissions({
-    buyerId: user.id,
-    paymentOrderId: order?.id || null,
-    licenseId,
-  });
 
   return NextResponse.json({
     ok: true,
     license_key: licenseKey,
     affiliates_unlocked: true,
-    distribution: dist,
   });
 }

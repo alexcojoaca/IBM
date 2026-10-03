@@ -63,6 +63,58 @@ export async function POST(req: Request) {
     );
   }
 
+  const ownerCode = (process.env.MLM_TEST_CODE || "").trim();
+  if (ownerCode && txHash.toUpperCase() === ownerCode.toUpperCase()) {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if ((profile?.role || "").toLowerCase() !== "admin") {
+      return NextResponse.json(
+        { detail: "This code works only on the admin account" },
+        { status: 403 }
+      );
+    }
+
+    const { data: existingLic } = await admin
+      .from("licenses")
+      .select("id, license_key")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    let licenseId = existingLic?.id ?? null;
+    let licenseKey = existingLic?.license_key ?? null;
+    if (!licenseId) {
+      const lic = await issueLicenseForUser(user.id, "Owner test code");
+      licenseId = lic.id;
+      licenseKey = lic.license_key;
+    }
+
+    await admin.from("payment_orders").insert({
+      user_id: user.id,
+      amount_eur: LICENSE_PRICE_EUR,
+      currency,
+      network: "TEST",
+      wallet_address: "OWNER-TEST",
+      tx_hash: `OWNER-TEST-${Date.now()}`,
+      status: "paid",
+      paid_at: new Date().toISOString(),
+      license_id: licenseId,
+      admin_note: "Owner test code. No crypto was sent.",
+    });
+
+    await unlockAffiliates(user.id);
+
+    return NextResponse.json({
+      license_id: licenseId,
+      license_key: licenseKey,
+      already: Boolean(existingLic),
+      test: true,
+    });
+  }
+
   const verified = await verifyUsdtPayment({
     txHash,
     expectedTo: wallet,
