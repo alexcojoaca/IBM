@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { generateLicenseKey } from "@/lib/license";
+
+type ProfileBrief = {
+  full_name: string | null;
+  email: string | null;
+};
 
 type License = {
   id: string;
@@ -14,6 +19,7 @@ type License = {
   expires_at: string | null;
   user_id: string | null;
   created_at: string;
+  profiles: ProfileBrief | null;
 };
 
 type Payment = {
@@ -26,11 +32,25 @@ type Payment = {
   tx_hash: string | null;
   created_at: string;
   license_id: string | null;
+  profiles: ProfileBrief | null;
 };
+
+type DeviceRow = {
+  id: string;
+  license_id: string;
+  is_active: boolean;
+};
+
+function statusClass(status: string) {
+  if (status === "active" || status === "paid") return "badge badge-ok";
+  if (status === "pending" || status === "submitted") return "badge badge-warn";
+  return "badge badge-bad";
+}
 
 export default function AdminPage() {
   const [licenses, setLicenses] = useState<License[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [activeDevices, setActiveDevices] = useState(0);
   const [email, setEmail] = useState("");
   const [days, setDays] = useState(365);
   const [error, setError] = useState("");
@@ -39,6 +59,8 @@ export default function AdminPage() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [diag, setDiag] = useState("");
   const [payMsg, setPayMsg] = useState("");
+  const [q, setQ] = useState("");
+  const [adminName, setAdminName] = useState("");
 
   const load = async () => {
     const supabase = createClient();
@@ -52,7 +74,7 @@ export default function AdminPage() {
     }
     const { data: profile, error: profileErr } = await supabase
       .from("profiles")
-      .select("role, email")
+      .select("role, email, full_name")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -69,9 +91,6 @@ export default function AdminPage() {
           "",
           "In Supabase → SQL Editor run:",
           `update public.profiles set role = 'admin' where id = '${user.id}';`,
-          "-- or --",
-          `update public.profiles set role = 'admin' where lower(email) = lower('${user.email || ""}');`,
-          "Then refresh this page (F5).",
         ]
           .filter(Boolean)
           .join("\n")
@@ -80,21 +99,48 @@ export default function AdminPage() {
       return;
     }
     setAllowed(true);
+    setAdminName(profile?.full_name || profile?.email || "Admin");
+
     const { data } = await supabase
       .from("licenses")
-      .select("*")
+      .select("*, profiles:user_id (full_name, email)")
       .order("created_at", { ascending: false });
     setLicenses((data as License[]) || []);
+
     const { data: pays } = await supabase
       .from("payment_orders")
-      .select("*")
+      .select("*, profiles:user_id (full_name, email)")
       .order("created_at", { ascending: false });
     setPayments((pays as Payment[]) || []);
+
+    const { data: devices } = await supabase
+      .from("license_devices")
+      .select("id, license_id, is_active")
+      .eq("is_active", true);
+    setActiveDevices(((devices as DeviceRow[]) || []).length);
   };
 
   useEffect(() => {
     load();
   }, []);
+
+  const filteredLicenses = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return licenses;
+    return licenses.filter((l) => {
+      const name = (l.profiles?.full_name || "").toLowerCase();
+      const mail = (l.profiles?.email || "").toLowerCase();
+      const key = (l.license_key || "").toLowerCase();
+      return name.includes(s) || mail.includes(s) || key.includes(s) || l.status.includes(s);
+    });
+  }, [licenses, q]);
+
+  const stats = useMemo(() => {
+    const active = licenses.filter((l) => l.status === "active").length;
+    const clients = new Set(licenses.map((l) => l.user_id).filter(Boolean)).size;
+    const pendingPay = payments.filter((p) => p.status === "pending" || p.status === "submitted").length;
+    return { total: licenses.length, active, clients, pendingPay, activeDevices };
+  }, [licenses, payments, activeDevices]);
 
   const create = async (e: FormEvent) => {
     e.preventDefault();
@@ -134,13 +180,14 @@ export default function AdminPage() {
       return;
     }
     setCreated(key);
+    setEmail("");
     load();
   };
 
-  const copy = async () => {
-    if (!created) return;
-    await navigator.clipboard.writeText(created);
+  const copyText = async (text: string) => {
+    await navigator.clipboard.writeText(text);
     setCopyMsg("Copied ✓");
+    setTimeout(() => setCopyMsg(""), 2000);
   };
 
   const setStatus = async (id: string, status: string) => {
@@ -162,9 +209,7 @@ export default function AdminPage() {
       return;
     }
     setPayMsg(
-      body.license_key
-        ? `Paid → license ${body.license_key} issued`
-        : "Payment confirmed"
+      body.license_key ? `Paid → license ${body.license_key} issued` : "Payment confirmed"
     );
     load();
   };
@@ -213,78 +258,131 @@ export default function AdminPage() {
   return (
     <div className="shell dash">
       <aside className="dash-side">
-        <div className="brand" style={{ marginBottom: "1.25rem" }}>
-          IBM Admin
+        <div className="brand" style={{ marginBottom: "0.35rem" }}>
+          IBM <span>●</span>
         </div>
+        <p className="muted" style={{ fontSize: "0.75rem", margin: "0 0 1.25rem" }}>
+          Admin · {adminName}
+        </p>
         <Link className="active" href="/admin">
-          Licenses
+          Overview
         </Link>
         <Link href="/dashboard">User dashboard</Link>
+        <Link href="/bot/">Open bot</Link>
         <Link href="/">Landing</Link>
+        <button className="btn" type="button" style={{ marginTop: "1.25rem" }} onClick={() => load()}>
+          Refresh data
+        </button>
       </aside>
+
       <main className="dash-main">
-        <h1>License admin</h1>
+        <div className="admin-head">
+          <div>
+            <h1>Admin dashboard</h1>
+            <p className="muted" style={{ marginTop: "-0.5rem" }}>
+              Clients, licenses, payments — International Business Multiplier
+            </p>
+          </div>
+          {copyMsg && <span className="ok" style={{ margin: 0 }}>{copyMsg}</span>}
+        </div>
+
+        <div className="stat-grid">
+          <div className="stat-card">
+            <span className="muted">Licenses</span>
+            <strong>{stats.total}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="muted">Active</span>
+            <strong>{stats.active}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="muted">Clients</span>
+            <strong>{stats.clients}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="muted">Live devices</span>
+            <strong>{stats.activeDevices}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="muted">Pending payments</span>
+            <strong>{stats.pendingPay}</strong>
+          </div>
+        </div>
+
         {payMsg && <p className="ok">{payMsg}</p>}
 
         <div className="panel" style={{ marginBottom: "1.25rem" }}>
           <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Crypto payments</h2>
-          <p className="muted">Confirm after you see the transfer — issues the €150 license to the buyer.</p>
+          <p className="muted">Confirm transfer → issues €150 / 150 USDT license to the client.</p>
           {!payments.length ? (
-            <p className="muted">No payment orders.</p>
+            <p className="muted">No payment orders yet.</p>
           ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>User</th>
-                  <th>Tx</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((p) => (
-                  <tr key={p.id}>
-                    <td>{new Date(p.created_at).toLocaleString()}</td>
-                    <td>
-                      <code style={{ fontSize: "0.7rem" }}>{p.user_id.slice(0, 8)}…</code>
-                    </td>
-                    <td>
-                      <code style={{ fontSize: "0.7rem" }}>{p.tx_hash || "—"}</code>
-                    </td>
-                    <td>{p.status}</td>
-                    <td>
-                      {p.status !== "paid" && (
-                        <button className="btn btn-primary" type="button" onClick={() => confirmPayment(p.id)}>
-                          Confirm &amp; issue key
-                        </button>
-                      )}
-                    </td>
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>Email</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Tx</th>
+                    <th>Status</th>
+                    <th></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {payments.map((p) => (
+                    <tr key={p.id}>
+                      <td>
+                        <strong>{p.profiles?.full_name || "—"}</strong>
+                      </td>
+                      <td>{p.profiles?.email || "—"}</td>
+                      <td>{new Date(p.created_at).toLocaleString()}</td>
+                      <td>
+                        €{p.amount_eur} · {p.currency} {p.network}
+                      </td>
+                      <td>
+                        <code className="tiny">{p.tx_hash || "—"}</code>
+                      </td>
+                      <td>
+                        <span className={statusClass(p.status)}>{p.status}</span>
+                      </td>
+                      <td>
+                        {p.status !== "paid" && (
+                          <button
+                            className="btn btn-primary"
+                            type="button"
+                            onClick={() => confirmPayment(p.id)}
+                          >
+                            Confirm &amp; issue
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
         <form className="panel" onSubmit={create} style={{ marginBottom: "1.25rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Create key</h2>
-          <p className="muted">1 device · default 365 days · copy once and assign to a user email</p>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Create license</h2>
+          <p className="muted">1 device · assign to an existing account email</p>
           {error && <p className="error">{error}</p>}
           {created && (
             <div style={{ marginBottom: "0.75rem" }}>
               <div className="keybox">{created}</div>
               <div className="row" style={{ marginTop: "0.5rem" }}>
-                <button type="button" className="btn btn-primary" onClick={copy}>
+                <button type="button" className="btn btn-primary" onClick={() => copyText(created)}>
                   Copy key
                 </button>
-                {copyMsg && <span className="ok">{copyMsg}</span>}
               </div>
             </div>
           )}
           <div className="row">
-            <div className="form-row" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
-              <label>Assign to email (optional)</label>
+            <div className="form-row" style={{ flex: 1, minWidth: 220, marginBottom: 0 }}>
+              <label>Client email</label>
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -307,41 +405,77 @@ export default function AdminPage() {
         </form>
 
         <div className="panel">
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>All licenses</h2>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Key</th>
-                <th>Status</th>
-                <th>Devices</th>
-                <th>Expires</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {licenses.map((l) => (
-                <tr key={l.id}>
-                  <td>
-                    <code>{l.license_key}</code>
-                  </td>
-                  <td>{l.status}</td>
-                  <td>{l.max_devices}</td>
-                  <td>{l.expires_at ? new Date(l.expires_at).toLocaleDateString() : "—"}</td>
-                  <td className="row">
-                    <button className="btn" type="button" onClick={() => setStatus(l.id, "suspended")}>
-                      Suspend
-                    </button>
-                    <button className="btn" type="button" onClick={() => setStatus(l.id, "active")}>
-                      Reactivate
-                    </button>
-                    <button className="btn" type="button" onClick={() => setStatus(l.id, "revoked")}>
-                      Revoke
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-head" style={{ marginBottom: "0.75rem" }}>
+            <h2 style={{ margin: 0, fontFamily: "var(--font-display)" }}>Clients &amp; licenses</h2>
+            <input
+              className="search-input"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search name, email, key…"
+            />
+          </div>
+          {!filteredLicenses.length ? (
+            <p className="muted">No licenses match.</p>
+          ) : (
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>Email</th>
+                    <th>License key</th>
+                    <th>Plan</th>
+                    <th>Status</th>
+                    <th>Expires</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLicenses.map((l) => (
+                    <tr key={l.id}>
+                      <td>
+                        <strong>{l.profiles?.full_name || "Unassigned"}</strong>
+                      </td>
+                      <td>{l.profiles?.email || "—"}</td>
+                      <td>
+                        <div className="row" style={{ alignItems: "center" }}>
+                          <code className="tiny">{l.license_key}</code>
+                          <button
+                            className="btn"
+                            type="button"
+                            style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
+                            onClick={() => copyText(l.license_key)}
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </td>
+                      <td>{l.plan}</td>
+                      <td>
+                        <span className={statusClass(l.status)}>{l.status}</span>
+                      </td>
+                      <td>
+                        {l.expires_at ? new Date(l.expires_at).toLocaleDateString() : "—"}
+                      </td>
+                      <td>
+                        <div className="row">
+                          <button className="btn" type="button" onClick={() => setStatus(l.id, "suspended")}>
+                            Suspend
+                          </button>
+                          <button className="btn" type="button" onClick={() => setStatus(l.id, "active")}>
+                            Reactivate
+                          </button>
+                          <button className="btn" type="button" onClick={() => setStatus(l.id, "revoked")}>
+                            Revoke
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </main>
     </div>
