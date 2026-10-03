@@ -22,7 +22,7 @@ export type LandingCopy = {
 const en: LandingCopy = {
   kicker: "International Business Multiplier",
   hero: "Stop watching the chart. Let a system take the shift.",
-  lead: "IBM is an automated bot for MetaTrader 5. It trades with a Wall Street posture: rules instead of mood, the same plan every time, while you keep your day.",
+  lead: "IBM is an automated bot for MetaTrader 5. Its strategy follows the systematic method Jim Simons made famous: fixed rules, no emotion in the order, the same plan every time.",
   primary: "Start now",
   secondary: "I already have an account",
   eyes: "We do not guarantee income. We let you see it with your own eyes.",
@@ -40,7 +40,7 @@ const en: LandingCopy = {
   simons: [
     "James Harris Simons was a mathematician. In 1982 he founded Renaissance Technologies. The Medallion fund became the most talked-about money machine on Wall Street, and almost nobody outside the building was allowed in. He never published the models.",
     "What he did publish, by the way he worked, was the rule: fire the story. Hire people who can test. If the numbers say no, the idea is dead. Emotion does not get a vote.",
-    "IBM is built on that line. A strategy with a spine, executed by a bot, on your MetaTrader 5. Not a tip. Not a group chat. A system you can watch work.",
+    "The bot uses a strategy built on that method. The rules sit in the code, and the order leaves without your mood, on your MetaTrader 5. We do not hold Medallion's unpublished models. We take the discipline Simons made famous and put it in a system you can watch work.",
   ],
   whyTitle: "Why people start with us",
   whyLead: "Not because someone shouted a number. Because the alternative is still you, alone, against the candle.",
@@ -57,7 +57,7 @@ const en: LandingCopy = {
 const ro: LandingCopy = {
   kicker: "International Business Multiplier",
   hero: "Nu mai sta în grafic. Lasă un sistem să țină tura.",
-  lead: "IBM este un bot automat pentru MetaTrader 5. Tranzacționează cu postură de Wall Street: reguli în loc de stare, același plan de fiecare dată, în timp ce ziua ta rămâne a ta.",
+  lead: "IBM este un bot automat pentru MetaTrader 5. Strategia lui urmează metoda sistematică pe care Jim Simons a făcut-o celebră: reguli fixe, fără emoție în ordin, același plan de fiecare dată.",
   primary: "Începe acum",
   secondary: "Am deja un cont",
   eyes: "Noi nu garantăm veniturile. Te lăsăm să le vezi cu ochii tăi.",
@@ -75,7 +75,7 @@ const ro: LandingCopy = {
   simons: [
     "James Harris Simons a fost matematician. În 1982 a înființat Renaissance Technologies. Fondul Medallion a devenit cea mai discutată mașină de bani de pe Wall Street, și aproape nimeni din afara clădirii nu avea voie înăuntru. Modelele nu le-a publicat niciodată.",
     "Ce a publicat, prin felul în care lucra, a fost regula: dai afară povestea. Angajezi oameni care știu să testeze. Dacă numerele spun nu, ideea e moartă. Emoția nu are vot.",
-    "IBM este construit pe linia asta. O strategie cu coloană vertebrală, executată de un bot, pe MetaTrader 5-ul tău. Nu un pont. Nu un grup. Un sistem pe care îl poți privi cum lucrează.",
+    "Botul folosește o strategie construită pe metoda asta. Regulile stau în cod, iar ordinul pleacă fără starea ta de moment, pe MetaTrader 5-ul tău. Nu deținem modelele nepublicate ale Medallion. Luăm disciplina pe care Simons a făcut-o celebră și o punem într-un sistem pe care îl poți privi cum lucrează.",
   ],
   whyTitle: "De ce să lucrezi cu noi",
   whyLead: "Nu pentru că cineva a strigat o cifră. Pentru că alternativa tot tu ești, singur, în fața lumânării.",

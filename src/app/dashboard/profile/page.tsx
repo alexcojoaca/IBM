@@ -6,6 +6,7 @@ import { DashNav } from "@/components/DashNav";
 import { createClient } from "@/lib/supabase/client";
 import { LANGS, type LangCode } from "@/lib/langs";
 import { useI18n } from "@/i18n/LanguageProvider";
+import { TERMS_VERSION } from "@/lib/legal";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [termsAt, setTermsAt] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
 
@@ -43,6 +45,12 @@ export default function ProfilePage() {
         setLocalLanguage((data.preferred_language as LangCode) || "en");
         setIsAdmin(data.role === "admin");
       }
+      const { data: legal } = await supabase
+        .from("profiles")
+        .select("terms_accepted_at, terms_version")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (legal?.terms_accepted_at) setTermsAt(legal.terms_accepted_at);
       setLoaded(true);
     })();
   }, [router]);
@@ -127,6 +135,11 @@ export default function ProfilePage() {
               ))}
             </select>
           </div>
+          {termsAt && (
+            <p className="muted">
+              {new Date(termsAt).toLocaleString()} · terms {TERMS_VERSION}
+            </p>
+          )}
           <button className="btn btn-primary" type="submit">
             {t("profile.save")}
           </button>

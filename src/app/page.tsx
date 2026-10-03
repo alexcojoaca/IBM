@@ -90,6 +90,16 @@ export default function HomePage() {
             {c.primary}
           </Link>
         </section>
+
+        <footer className="lp-foot">
+          <p>
+            <Link href="/legal/terms">{lang === "ro" ? "Termeni" : "Terms"}</Link>
+            {" · "}
+            <Link href="/legal/privacy">{lang === "ro" ? "Confidențialitate" : "Privacy"}</Link>
+            {" · "}
+            <Link href="/legal/risk">{lang === "ro" ? "Risc" : "Risk"}</Link>
+          </p>
+        </footer>
       </div>
     </div>
   );

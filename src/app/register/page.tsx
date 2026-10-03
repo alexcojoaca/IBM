@@ -6,15 +6,17 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/i18n/LanguageProvider";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { TERMS_VERSION } from "@/lib/legal";
 
 function RegisterForm() {
   const router = useRouter();
   const search = useSearchParams();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [refCode, setRefCode] = useState("");
+  const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,12 @@ function RegisterForm() {
     try {
       const supabase = createClient();
       const origin = window.location.origin;
+      if (!accepted) {
+        setError(lang === "ro" ? "Trebuie să accepți documentele ca să creezi contul." : "You must accept the documents to create an account.");
+        setLoading(false);
+        return;
+      }
+
       const referral = refCode.trim().toUpperCase();
 
       const { data, error: err } = await supabase.auth.signUp({
@@ -55,6 +63,8 @@ function RegisterForm() {
         options: {
           data: {
             full_name: fullName.trim(),
+            terms_accepted: "true",
+            terms_version: TERMS_VERSION,
             ...(referral ? { referral_code: referral } : {}),
           },
           emailRedirectTo: `${origin}/login`,
@@ -77,6 +87,18 @@ function RegisterForm() {
       }
 
       if (data.session) {
+        await supabase
+          .from("profiles")
+          .update({
+            terms_accepted_at: new Date().toISOString(),
+            terms_version: TERMS_VERSION,
+          })
+          .eq("id", data.user.id);
+        await supabase.from("legal_acceptances").insert({
+          user_id: data.user.id,
+          email: data.user.email,
+          terms_version: TERMS_VERSION,
+        });
         router.push("/dashboard");
         router.refresh();
         return;
@@ -118,7 +140,31 @@ function RegisterForm() {
             required
           />
         </div>
-        <button className="btn btn-primary btn-block" disabled={loading}>
+        <label className="legal-check">
+          <input
+            type="checkbox"
+            checked={accepted}
+            onChange={(e) => setAccepted(e.target.checked)}
+          />
+          <span>
+            {lang === "ro" ? (
+              <>
+                Am citit și accept{" "}
+                <Link href="/legal/terms" target="_blank">Termenii</Link>,{" "}
+                <Link href="/legal/privacy" target="_blank">Politica de confidențialitate</Link> și{" "}
+                <Link href="/legal/risk" target="_blank">Nota privind riscul</Link>.
+              </>
+            ) : (
+              <>
+                I have read and accept the{" "}
+                <Link href="/legal/terms" target="_blank">Terms</Link>, the{" "}
+                <Link href="/legal/privacy" target="_blank">Privacy Policy</Link>, and the{" "}
+                <Link href="/legal/risk" target="_blank">Risk Notice</Link>.
+              </>
+            )}
+          </span>
+        </label>
+        <button className="btn btn-primary btn-block" disabled={loading || !accepted}>
           {loading ? t("register.creating") : t("register.submit")}
         </button>
         <p className="muted" style={{ marginTop: "1rem" }}>
