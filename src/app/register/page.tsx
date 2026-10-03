@@ -98,11 +98,6 @@ function RegisterForm() {
       <form className="auth-card" onSubmit={onSubmit}>
         <h1>{t("register.title")}</h1>
         <p>{t("register.sub")}</p>
-        {refCode && (
-          <p className="ok" style={{ marginTop: 0 }}>
-            {t("register.invited")} <strong>{refCode}</strong>
-          </p>
-        )}
         {error && <p className="error">{error}</p>}
         {info && <p className="ok">{info}</p>}
         <div className="form-row">
@@ -121,14 +116,6 @@ function RegisterForm() {
             onChange={(e) => setPassword(e.target.value)}
             minLength={8}
             required
-          />
-        </div>
-        <div className="form-row">
-          <label>{t("register.refLabel")}</label>
-          <input
-            value={refCode}
-            onChange={(e) => setRefCode(e.target.value.toUpperCase())}
-            placeholder={t("register.refPlaceholder")}
           />
         </div>
         <button className="btn btn-primary btn-block" disabled={loading}>
