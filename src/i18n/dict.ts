@@ -120,6 +120,10 @@ const en: Dict = {
   "dl.needLicense": "Buy a license first to unlock the download.",
   "dl.goBuy": "Go to Buy license →",
   "dl.download": "Download IBM-Client.zip",
+  "dl.infoTitle": "Information",
+  "dl.infoBody":
+    "The bot runs on Windows, together with MetaTrader 5. If you do not have a Windows computer, rent a Windows server, install MetaTrader and the bot there, and leave it running. You can open this site from a Mac or a phone.",
+  "dl.infoLink": "Windows server for the bot",
 
   "devices.title": "Devices",
   "devices.sub": "Each license allows 1 active device. Disconnect here to free the seat.",
@@ -415,6 +419,10 @@ const ro: Dict = {
   "dl.needLicense": "Cumpără mai întâi o licență pentru a debloca descărcarea.",
   "dl.goBuy": "Mergi la Cumpără licență →",
   "dl.download": "Descarcă IBM-Client.zip",
+  "dl.infoTitle": "Informații",
+  "dl.infoBody":
+    "Botul merge pe Windows, împreună cu MetaTrader 5. Dacă nu ai un calculator cu Windows, poți închiria un server Windows, instalezi acolo MetaTrader și botul și îl lași pornit. Site-ul îl deschizi de pe Mac sau de pe telefon.",
+  "dl.infoLink": "Server Windows pentru bot",
 
   "devices.title": "Dispozitive",
   "devices.sub": "Fiecare licență permite 1 dispozitiv activ. Deconectează aici ca să eliberezi locul.",
@@ -686,6 +694,10 @@ const it: Dict = {
   "dl.needLicense": "Compra prima una licenza per sbloccare il download.",
   "dl.goBuy": "Vai a Compra licenza →",
   "dl.download": "Scarica IBM-Client.zip",
+  "dl.infoTitle": "Informazioni",
+  "dl.infoBody":
+    "Il bot funziona su Windows, insieme a MetaTrader 5. Se non hai un computer Windows, puoi noleggiare un server Windows, installare lì MetaTrader e il bot e lasciarlo acceso. Questo sito lo apri da Mac o da telefono.",
+  "dl.infoLink": "Server Windows per il bot",
   "devices.title": "Dispositivi",
   "devices.sub": "Ogni licenza consente 1 dispositivo attivo. Scollega qui per liberare il posto.",
   "devices.none": "Nessun dispositivo. Attiva il bot con la chiave.",
@@ -878,6 +890,10 @@ const es: Dict = {
   "dl.needLicense": "Compra primero una licencia para desbloquear la descarga.",
   "dl.goBuy": "Ir a Comprar licencia →",
   "dl.download": "Descargar IBM-Client.zip",
+  "dl.infoTitle": "Información",
+  "dl.infoBody":
+    "El bot funciona en Windows, junto con MetaTrader 5. Si no tienes un ordenador con Windows, puedes alquilar un servidor Windows, instalar allí MetaTrader y el bot y dejarlo encendido. Esta web la abres desde un Mac o un teléfono.",
+  "dl.infoLink": "Servidor Windows para el bot",
   "devices.title": "Dispositivos",
   "devices.sub": "Cada licencia permite 1 dispositivo activo. Desconecta aquí para liberar el puesto.",
   "devices.none": "Sin dispositivos. Activa el bot con tu clave.",
@@ -1070,6 +1086,10 @@ const fr: Dict = {
   "dl.needLicense": "Achetez d'abord une licence pour débloquer le téléchargement.",
   "dl.goBuy": "Aller à Acheter une licence →",
   "dl.download": "Télécharger IBM-Client.zip",
+  "dl.infoTitle": "Informations",
+  "dl.infoBody":
+    "Le bot fonctionne sur Windows, avec MetaTrader 5. Si vous n'avez pas d'ordinateur Windows, vous pouvez louer un serveur Windows, y installer MetaTrader et le bot, et le laisser allumé. Vous ouvrez ce site depuis un Mac ou un téléphone.",
+  "dl.infoLink": "Serveur Windows pour le bot",
   "devices.title": "Appareils",
   "devices.sub": "Chaque licence permet 1 appareil actif. Déconnectez ici pour libérer la place.",
   "devices.none": "Aucun appareil. Activez le bot avec votre clé.",
@@ -1262,6 +1282,10 @@ const pl: Dict = {
   "dl.needLicense": "Najpierw kup licencję, aby odblokować pobieranie.",
   "dl.goBuy": "Przejdź do Kup licencję →",
   "dl.download": "Pobierz IBM-Client.zip",
+  "dl.infoTitle": "Informacje",
+  "dl.infoBody":
+    "Bot działa na Windows, razem z MetaTrader 5. Jeśli nie masz komputera z Windows, możesz wynająć serwer Windows, zainstalować tam MetaTrader i bota i zostawić go włączonego. Tę stronę otwierasz z Maca albo z telefonu.",
+  "dl.infoLink": "Serwer Windows dla bota",
   "devices.title": "Urządzenia",
   "devices.sub": "Każda licencja pozwala na 1 aktywne urządzenie. Odłącz tutaj, by zwolnić miejsce.",
   "devices.none": "Brak urządzeń. Aktywuj bota kluczem licencji.",
@@ -1454,6 +1478,10 @@ const ru: Dict = {
   "dl.needLicense": "Сначала купите лицензию, чтобы открыть загрузку.",
   "dl.goBuy": "К покупке лицензии →",
   "dl.download": "Скачать IBM-Client.zip",
+  "dl.infoTitle": "Информация",
+  "dl.infoBody":
+    "Бот работает на Windows вместе с MetaTrader 5. Если у вас нет компьютера с Windows, можно арендовать сервер Windows, установить там MetaTrader и бота и оставить его включённым. Сайт открывается с Mac или с телефона.",
+  "dl.infoLink": "Сервер Windows для бота",
   "devices.title": "Устройства",
   "devices.sub": "Каждая лицензия — 1 активное устройство. Отключите здесь, чтобы освободить место.",
   "devices.none": "Устройств нет. Активируйте бот ключом лицензии.",

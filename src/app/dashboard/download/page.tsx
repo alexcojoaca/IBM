@@ -78,6 +78,14 @@ export default function DownloadPage() {
             </a>
           )}
         </div>
+
+        <div className="panel" style={{ maxWidth: 560, marginTop: "1rem" }}>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("dl.infoTitle")}</h2>
+          <p className="muted">{t("dl.infoBody")}</p>
+          <a href="https://contabo.com/en/vps/" target="_blank" rel="noreferrer">
+            {t("dl.infoLink")}
+          </a>
+        </div>
       </main>
     </div>
   );
