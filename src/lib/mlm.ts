@@ -24,13 +24,17 @@ export async function getUpline(buyerId: string): Promise<{ id: string; level: n
   let currentId: string | null = buyerId;
 
   for (let level = 1; level <= 3; level++) {
-    if (!currentId) break;
-    const result = await supabase
+    const lookUpId = currentId;
+    if (!lookUpId) break;
+
+    // Explicit cast avoids TS circular inference with Supabase generics
+    const { data } = (await supabase
       .from("profiles")
       .select("referred_by")
-      .eq("id", currentId)
-      .maybeSingle();
-    const parentId: string | null = (result.data?.referred_by as string | null) || null;
+      .eq("id", lookUpId)
+      .maybeSingle()) as { data: { referred_by: string | null } | null };
+
+    const parentId: string | null = data?.referred_by ?? null;
     if (!parentId) break;
     upline.push({ id: parentId, level });
     currentId = parentId;
