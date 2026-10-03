@@ -205,3 +205,86 @@ function finalizeMatch(
 export function requiredUsdtAmount(): number {
   return Number(process.env.NEXT_PUBLIC_CRYPTO_AMOUNT || process.env.CRYPTO_AMOUNT || "150");
 }
+
+export type ChainDeposit = {
+  tx: string;
+  from: string;
+  amount: number;
+  at?: number;
+};
+
+export type WalletStatus = {
+  address: string;
+  activated: boolean;
+  trx: number;
+  usdt: number;
+  deposits: ChainDeposit[];
+  trongridKeySet: boolean;
+  privateKeySet: boolean;
+  error?: string;
+};
+
+/** Public wallet balances + recent incoming USDT. Never returns secrets. */
+export async function companyWalletStatus(): Promise<WalletStatus> {
+  const address = (
+    process.env.CRYPTO_WALLET_ADDRESS ||
+    process.env.NEXT_PUBLIC_CRYPTO_WALLET ||
+    ""
+  ).trim();
+  const base: WalletStatus = {
+    address,
+    activated: false,
+    trx: 0,
+    usdt: 0,
+    deposits: [],
+    trongridKeySet: !!process.env.TRONGRID_API_KEY?.trim(),
+    privateKeySet: !!process.env.TRON_PRIVATE_KEY?.trim(),
+  };
+  if (!address) return { ...base, error: "CRYPTO_WALLET_ADDRESS missing" };
+
+  try {
+    const accRes = await fetch(`${TRONGRID}/v1/accounts/${encodeURIComponent(address)}`, {
+      headers: headers(),
+      cache: "no-store",
+    });
+    if (!accRes.ok) {
+      return { ...base, error: `TronGrid account ${accRes.status}` };
+    }
+    const accJson = (await accRes.json()) as {
+      data?: Array<{ balance?: number; trc20?: Array<Record<string, string>> }>;
+    };
+    const acc = accJson.data?.[0];
+    if (acc) {
+      base.activated = true;
+      base.trx = Number(acc.balance || 0) / 1e6;
+      for (const bag of acc.trc20 || []) {
+        const raw = bag[USDT_TRC20];
+        if (raw != null) base.usdt = Number(raw) / 1e6;
+      }
+    }
+  } catch (e: unknown) {
+    base.error = e instanceof Error ? e.message : "TronGrid account failed";
+  }
+
+  try {
+    const url =
+      `${TRONGRID}/v1/accounts/${encodeURIComponent(address)}/transactions/trc20` +
+      `?only_confirmed=true&limit=15&contract_address=${encodeURIComponent(USDT_TRC20)}`;
+    const txRes = await fetch(url, { headers: headers(), cache: "no-store" });
+    if (txRes.ok) {
+      const txJson = (await txRes.json()) as { data?: Trc20Row[] };
+      base.deposits = (txJson.data || [])
+        .filter((r) => addressesEqual(r.to || "", address))
+        .map((r) => ({
+          tx: r.transaction_id || "",
+          from: r.from || "",
+          amount: Number(r.value || 0) / Math.pow(10, r.token_info?.decimals ?? 6),
+          at: r.block_timestamp,
+        }));
+    }
+  } catch {
+    /* deposits stay empty; balances above are enough */
+  }
+
+  return base;
+}

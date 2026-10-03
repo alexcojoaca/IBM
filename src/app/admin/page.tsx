@@ -55,6 +55,24 @@ type DeviceRow = {
 
 type TabId = "payments" | "create" | "network" | "clients" | "payouts";
 
+type WalletSnap = {
+  address: string;
+  activated: boolean;
+  trx: number;
+  usdt: number;
+  deposits: { tx: string; from: string; amount: number; at?: number }[];
+  trongridKeySet: boolean;
+  privateKeySet: boolean;
+  error?: string;
+};
+
+type PayoutAttempt = {
+  id: string;
+  status: string;
+  txHash?: string;
+  error?: string;
+};
+
 type CommissionRow = {
   id: string;
   level: number;
@@ -97,6 +115,8 @@ export default function AdminPage() {
   const [busyDelete, setBusyDelete] = useState<string | null>(null);
   const [commissions, setCommissions] = useState<CommissionRow[]>([]);
   const [busyPayout, setBusyPayout] = useState(false);
+  const [wallet, setWallet] = useState<WalletSnap | null>(null);
+  const [payoutLog, setPayoutLog] = useState<PayoutAttempt[]>([]);
 
   const load = async () => {
     const supabase = createClient();
@@ -172,6 +192,11 @@ export default function AdminPage() {
     if (payRes.ok) {
       const body = await payRes.json();
       setCommissions((body.commissions as CommissionRow[]) || []);
+    }
+
+    const cryptoRes = await fetch("/api/admin/crypto");
+    if (cryptoRes.ok) {
+      setWallet((await cryptoRes.json()) as WalletSnap);
     }
   };
 
@@ -296,7 +321,14 @@ export default function AdminPage() {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.detail || t("admin.deleteFailed"));
-      setPayMsg(t("admin.payoutOk"));
+      const attempts = (body.results as PayoutAttempt[]) || [];
+      setPayoutLog(attempts);
+      const failed = attempts.filter((a) => a.status !== "paid").length;
+      setPayMsg(
+        attempts.length
+          ? t("admin.payoutDone", { ok: attempts.length - failed, bad: failed })
+          : t("admin.payoutNone")
+      );
       await load();
     } catch (err: unknown) {
       setPayMsg(err instanceof Error ? err.message : t("admin.deleteFailed"));
@@ -372,10 +404,10 @@ export default function AdminPage() {
 
   const tabs: { id: TabId; label: string }[] = [
     { id: "payments", label: t("admin.tabPayments") },
+    { id: "payouts", label: t("admin.tabPayouts") },
     { id: "create", label: t("admin.tabCreate") },
     { id: "network", label: t("admin.tabNetwork") },
     { id: "clients", label: t("admin.tabClients") },
-    { id: "payouts", label: t("admin.tabPayouts") },
   ];
 
   return (
@@ -718,6 +750,83 @@ export default function AdminPage() {
                 {busyPayout ? "…" : t("admin.retryAll")}
               </button>
             </div>
+
+            <div className="stat-grid" style={{ marginBottom: "1rem" }}>
+              <div className="stat-card">
+                <span className="muted">{t("admin.walletUsdt")}</span>
+                <strong>{wallet ? wallet.usdt.toFixed(2) : "…"}</strong>
+              </div>
+              <div className="stat-card">
+                <span className="muted">{t("admin.walletTrx")}</span>
+                <strong>{wallet ? wallet.trx.toFixed(2) : "…"}</strong>
+              </div>
+              <div className="stat-card">
+                <span className="muted">{t("admin.keyTron")}</span>
+                <strong>{wallet?.trongridKeySet ? t("admin.keyYes") : t("admin.keyNo")}</strong>
+              </div>
+              <div className="stat-card">
+                <span className="muted">{t("admin.keyPayout")}</span>
+                <strong>{wallet?.privateKeySet ? t("admin.keyYes") : t("admin.keyNo")}</strong>
+              </div>
+            </div>
+
+            {wallet?.address && (
+              <p style={{ marginTop: 0 }}>
+                <code className="tiny">{wallet.address}</code>
+              </p>
+            )}
+            {wallet && !wallet.activated && (
+              <p className="muted">{t("admin.walletIdle")}</p>
+            )}
+            {wallet && wallet.activated && wallet.trx < 5 && (
+              <p className="muted">{t("admin.trxHint")}</p>
+            )}
+            {wallet?.error && <p className="error">{wallet.error}</p>}
+
+            <h3 style={{ fontFamily: "var(--font-display)", marginBottom: "0.35rem" }}>
+              {t("admin.chainIn")}
+            </h3>
+            {!wallet?.deposits.length ? (
+              <p className="muted">{t("admin.noChain")}</p>
+            ) : (
+              <div className="table-wrap" style={{ marginBottom: "1.25rem" }}>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>{t("admin.colDate")}</th>
+                      <th>{t("admin.colFrom")}</th>
+                      <th>{t("admin.colAmount")}</th>
+                      <th>{t("admin.colTx")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wallet.deposits.map((d) => (
+                      <tr key={d.tx}>
+                        <td>{d.at ? new Date(d.at).toLocaleString() : "—"}</td>
+                        <td><code className="tiny">{d.from}</code></td>
+                        <td>{d.amount.toFixed(2)} USDT</td>
+                        <td><code className="tiny">{d.tx}</code></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {!!payoutLog.length && (
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontFamily: "var(--font-display)", marginBottom: "0.35rem" }}>
+                  {t("admin.lastTry")}
+                </h3>
+                {payoutLog.map((a) => (
+                  <p key={a.id} className={a.status === "paid" ? "ok" : "error"} style={{ margin: "0.2rem 0" }}>
+                    {a.status}
+                    {a.txHash ? ` · ${a.txHash}` : ""}
+                    {a.error ? ` · ${a.error}` : ""}
+                  </p>
+                ))}
+              </div>
+            )}
             {!commissions.length ? (
               <p className="muted">{t("admin.noPayouts")}</p>
             ) : (
