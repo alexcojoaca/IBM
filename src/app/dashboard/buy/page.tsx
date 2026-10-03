@@ -126,7 +126,19 @@ export default function BuyPage() {
           {t("buy.sub")}
         </p>
 
-        <div className="panel" style={{ marginBottom: "1rem", maxWidth: 560 }}>
+        <section className="panel buy-guide">
+          <h2>{t("buy.guideTitle")}</h2>
+          <ol>
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <li key={n}>
+                <strong>{t(`buy.g${n}t`)}</strong>
+                <p>{t(`buy.g${n}`)}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <div className="panel" style={{ marginBottom: "1rem", maxWidth: 680 }}>
           <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("buy.crypto")}</h2>
           {!cfg ? (
             <p className="muted">{t("buy.loadingPay")}</p>

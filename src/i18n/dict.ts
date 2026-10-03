@@ -109,6 +109,25 @@ const en: Dict = {
   "buy.colAmount": "Amount",
   "buy.colStatus": "Status",
   "buy.colTx": "Tx",
+  "buy.guideTitle": "How to pay, from the start",
+  "buy.g1t": "Get USDT on the TRON network",
+  "buy.g1":
+    "You pay with USDT, also called Tether. It must be on the network named TRON or TRC20. USDT on Ethereum, BSC, or any other network does not arrive here, and we cannot get it back for you. If you do not have USDT yet, buy it in an app that can send on TRON. Binance, OKX, Bybit, and Trust Wallet are common choices. When the app asks for a network, choose TRON (TRC20).",
+  "buy.g2t": "Copy the address on this page",
+  "buy.g2":
+    "Press Copy address. The address starts with the letter T. In your app, choose Send or Withdraw, then paste that address as the place the money goes. Before you confirm, check that the first four and the last four characters match the address on this page.",
+  "buy.g3t": "Send at least 150 USDT",
+  "buy.g3":
+    "Coin: USDT. Network: TRON (TRC20). Amount: 150 USDT, or a little more. Some apps take their fee out of the amount you type. If yours does, raise the amount so that 150 USDT actually arrives. Wait until the app says the transfer is finished. That usually takes about a minute.",
+  "buy.g4t": "Copy the transaction hash",
+  "buy.g4":
+    "Open the finished transfer. Find TxID, Transaction ID, or Hash. It is a long string of letters and numbers. It is not the address that starts with T. On Binance: Wallet, then Withdraw, then History, then copy the TxID. On Trust Wallet: open the USDT transfer and copy the transaction hash. Paste that code into Transaction hash below.",
+  "buy.g5t": "Add the wallet you sent from",
+  "buy.g5":
+    "This field is optional. If the app shows the address the money left from, and that address starts with T, paste it into Your sending wallet. If you cannot find it, leave the field empty and continue.",
+  "buy.g6t": "Press the button and wait",
+  "buy.g6":
+    "Press Verify payment & unlock license. We look up the transfer on the public TRON record. When it matches, your license key appears and the page opens Licenses. If the message says the transaction is not found yet, wait a minute and press the button again with the same hash.",
 
   "dl.title": "Download bridge",
   "dl.body":
@@ -408,6 +427,25 @@ const ro: Dict = {
   "buy.colAmount": "Sumă",
   "buy.colStatus": "Status",
   "buy.colTx": "Tx",
+  "buy.guideTitle": "Cum plătești, de la zero",
+  "buy.g1t": "Fă-ți rost de USDT pe rețeaua TRON",
+  "buy.g1":
+    "Plătești cu USDT, numit și Tether. Trebuie să fie pe rețeaua numită TRON sau TRC20. USDT pe Ethereum, BSC sau orice altă rețea nu ajunge aici, iar noi nu îl putem recupera. Dacă nu ai încă USDT, cumpără-l într-o aplicație care poate trimite pe TRON. Binance, OKX, Bybit și Trust Wallet sunt variante obișnuite. Când aplicația te întreabă rețeaua, alege TRON (TRC20).",
+  "buy.g2t": "Copiază adresa de pe pagina asta",
+  "buy.g2":
+    "Apasă Copiază adresa. Adresa începe cu litera T. În aplicație alege Trimite sau Retrage, apoi lipește adresa acolo unde se duc banii. Înainte să confirmi, verifică că primele patru și ultimele patru caractere sunt la fel cu adresa de pe pagina asta.",
+  "buy.g3t": "Trimite cel puțin 150 USDT",
+  "buy.g3":
+    "Monedă: USDT. Rețea: TRON (TRC20). Sumă: 150 USDT, sau un pic mai mult. Unele aplicații își iau comisionul din suma pe care o scrii. Dacă a ta face asta, mărește suma ca să ajungă efectiv 150 USDT. Așteaptă până aplicația spune că transferul s-a terminat. De obicei durează cam un minut.",
+  "buy.g4t": "Copiază hash-ul tranzacției",
+  "buy.g4":
+    "Deschide transferul terminat. Caută TxID, Transaction ID sau Hash. Este un șir lung de litere și cifre. Nu este adresa care începe cu T. Pe Binance: Wallet, apoi Withdraw, apoi History, apoi copiezi TxID. Pe Trust Wallet: deschizi transferul USDT și copiezi transaction hash. Lipește codul la Hash tranzacție, mai jos.",
+  "buy.g5t": "Adaugă wallet-ul din care ai trimis",
+  "buy.g5":
+    "Câmpul ăsta este opțional. Dacă aplicația îți arată adresa din care au plecat banii, și adresa începe cu T, lipește-o la Wallet-ul tău de trimitere. Dacă nu o găsești, lasă câmpul gol și mergi mai departe.",
+  "buy.g6t": "Apasă butonul și așteaptă",
+  "buy.g6":
+    "Apasă Verifică plata & deblochează licența. Căutăm transferul în registrul public TRON. Când se potrivește, apare cheia de licență și pagina deschide Licențele. Dacă mesajul spune că tranzacția nu a fost găsită încă, așteaptă un minut și apasă din nou, cu același hash.",
 
   "dl.title": "Descarcă bridge",
   "dl.body":
