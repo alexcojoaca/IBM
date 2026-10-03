@@ -90,9 +90,18 @@ export default function BuyPage() {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.detail || t("common.failed"));
-      setMsg(txHash ? t("buy.msgWithHash") : t("buy.msgNoHash"));
+      if (body.license_key) {
+        setMsg(t("buy.msgLicensed", { key: body.license_key }));
+      } else if (txHash) {
+        setMsg(t("buy.msgWithHash"));
+      } else {
+        setMsg(t("buy.msgNoHash"));
+      }
       setTxHash("");
       await load();
+      if (body.license_key) {
+        setTimeout(() => router.push("/dashboard"), 1500);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("common.failed"));
     } finally {
@@ -148,7 +157,7 @@ export default function BuyPage() {
                 placeholder={t("buy.txPlaceholder")}
               />
             </div>
-            <button className="btn btn-primary" disabled={loading} type="submit">
+            <button className="btn btn-primary" disabled={loading || !txHash.trim()} type="submit">
               {loading ? t("buy.submitting") : t("buy.submit")}
             </button>
           </form>
