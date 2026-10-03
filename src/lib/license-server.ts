@@ -16,11 +16,19 @@ export type LicenseRow = {
 };
 
 function normalizeKey(key: string) {
-  return key
+  let k = key
     .trim()
     .toUpperCase()
-    .replace(/[\u2010-\u2015\u2212]/g, "-") // fancy dashes → -
-    .replace(/\s+/g, "");
+    .replace(/[\u2010-\u2015\u2212]/g, "-")
+    .replace(/\s+/g, "")
+    .replace(/[^A-Z0-9-]/g, "");
+  // Accept pasted keys without dashes: IBMXXXXXXXXXXXXXXXX → IBM-XXXX-XXXX-XXXX-XXXX
+  const compact = k.replace(/-/g, "");
+  if (/^IBM[A-Z0-9]{16}$/.test(compact)) {
+    const body = compact.slice(3);
+    k = `IBM-${body.slice(0, 4)}-${body.slice(4, 8)}-${body.slice(8, 12)}-${body.slice(12, 16)}`;
+  }
+  return k;
 }
 
 export async function issueLicenseForUser(userId: string, notes?: string) {
@@ -101,7 +109,11 @@ export async function activateLicense(input: {
     .maybeSingle();
 
   if (error) throw new Error(`License lookup failed: ${error.message}`);
-  if (!license) throw new Error("Invalid license key");
+  if (!license) {
+    throw new Error(
+      `Invalid license key (${key}). Copy it again from Dashboard → Licenses.`
+    );
+  }
   if (license.status !== "active") throw new Error(`License is ${license.status}`);
   if (license.expires_at && new Date(license.expires_at) < new Date()) {
     await supabase.from("licenses").update({ status: "expired" }).eq("id", license.id);
@@ -127,7 +139,18 @@ export async function activateLicense(input: {
   } else {
     const used = await deviceCount(license.id);
     if (used >= license.max_devices) {
-      throw new Error("Device limit reached. Disconnect another device from your IBM dashboard.");
+      // Auto-free oldest seats so a valid key can always reconnect from a new browser
+      await supabase
+        .from("license_devices")
+        .update({ is_active: false })
+        .eq("license_id", license.id)
+        .eq("is_active", true);
+      const usedAfter = await deviceCount(license.id);
+      if (usedAfter >= license.max_devices) {
+        throw new Error(
+          "Device limit reached. Open Dashboard → Devices → Disconnect, then try again."
+        );
+      }
     }
     const { error: insErr } = await supabase.from("license_devices").insert({
       license_id: license.id,
