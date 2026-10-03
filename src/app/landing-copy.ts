@@ -40,7 +40,7 @@ const en: LandingCopy = {
   simons: [
     "James Harris Simons was a mathematician. In 1982 he founded Renaissance Technologies. The Medallion fund became the most talked-about money machine on Wall Street, and almost nobody outside the building was allowed in. He never published the models.",
     "What he did publish, by the way he worked, was the rule: fire the story. Hire people who can test. If the numbers say no, the idea is dead. Emotion does not get a vote.",
-    "The bot uses a strategy built on that method. The rules sit in the code, and the order leaves without your mood, on your MetaTrader 5. We do not hold Medallion's unpublished models. We take the discipline Simons made famous and put it in a system you can watch work.",
+    "The bot uses a strategy built on that method. The rules sit in the code, and the order leaves without your mood, on your MetaTrader 5.",
   ],
   whyTitle: "Why people start with us",
   whyLead: "Not because someone shouted a number. Because the alternative is still you, alone, against the candle.",
@@ -75,7 +75,7 @@ const ro: LandingCopy = {
   simons: [
     "James Harris Simons a fost matematician. În 1982 a înființat Renaissance Technologies. Fondul Medallion a devenit cea mai discutată mașină de bani de pe Wall Street, și aproape nimeni din afara clădirii nu avea voie înăuntru. Modelele nu le-a publicat niciodată.",
     "Ce a publicat, prin felul în care lucra, a fost regula: dai afară povestea. Angajezi oameni care știu să testeze. Dacă numerele spun nu, ideea e moartă. Emoția nu are vot.",
-    "Botul folosește o strategie construită pe metoda asta. Regulile stau în cod, iar ordinul pleacă fără starea ta de moment, pe MetaTrader 5-ul tău. Nu deținem modelele nepublicate ale Medallion. Luăm disciplina pe care Simons a făcut-o celebră și o punem într-un sistem pe care îl poți privi cum lucrează.",
+    "Botul folosește o strategie construită pe metoda asta. Regulile stau în cod, iar ordinul pleacă fără starea ta de moment, pe MetaTrader 5-ul tău.",
   ],
   whyTitle: "De ce să lucrezi cu noi",
   whyLead: "Nu pentru că cineva a strigat o cifră. Pentru că alternativa tot tu ești, singur, în fața lumânării.",

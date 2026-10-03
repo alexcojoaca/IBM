@@ -150,16 +150,14 @@ function RegisterForm() {
             {lang === "ro" ? (
               <>
                 Am citit și accept{" "}
-                <Link href="/legal/terms" target="_blank">Termenii</Link>,{" "}
-                <Link href="/legal/privacy" target="_blank">Politica de confidențialitate</Link> și{" "}
-                <Link href="/legal/risk" target="_blank">Nota privind riscul</Link>.
+                <Link href="/legal/terms" target="_blank">Termenii</Link> și{" "}
+                <Link href="/legal/privacy" target="_blank">Politica de confidențialitate</Link>.
               </>
             ) : (
               <>
                 I have read and accept the{" "}
-                <Link href="/legal/terms" target="_blank">Terms</Link>, the{" "}
-                <Link href="/legal/privacy" target="_blank">Privacy Policy</Link>, and the{" "}
-                <Link href="/legal/risk" target="_blank">Risk Notice</Link>.
+                <Link href="/legal/terms" target="_blank">Terms</Link> and the{" "}
+                <Link href="/legal/privacy" target="_blank">Privacy Policy</Link>.
               </>
             )}
           </span>

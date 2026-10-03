@@ -5,7 +5,7 @@ const termsRo: LegalBlock[] = [
     h: "1. Părțile și acceptarea",
     p: [
       "Prezentele termeni și condiții («Termenii») reglementează accesul la site-ul IBM («Site-ul») și folosirea contului, a licenței software, a botului pentru MetaTrader 5 și a programului de afiliere (împreună, «Serviciul»). Operatorul Serviciului este denumit în continuare «IBM», «noi» sau «Operatorul». Persoana care își creează cont este «Utilizatorul».",
-      "Crearea contului, bifarea căsuței de accept și folosirea Serviciului constituie acceptarea integrală a Termenilor, a Politicii de confidențialitate și a Notei privind riscul, în versiunea afișată la data acceptării. Dacă nu ești de acord, nu îți crea cont și nu folosi Serviciul.",
+      "Crearea contului, bifarea căsuței de accept și folosirea Serviciului constituie acceptarea integrală a Termenilor și a Politicii de confidențialitate, în versiunea afișată la data acceptării. Dacă nu ești de acord, nu îți crea cont și nu folosi Serviciul.",
       "Termenii sunt un document contractual. Nu sunt o ofertă de consultanță juridică, fiscală sau de investiții. Limbajul este intenționat formal.",
     ],
   },
@@ -120,7 +120,7 @@ const privacyRo: LegalBlock[] = [
     h: "1. Cine prelucrează",
     p: [
       "Această politică descrie cum sunt prelucrate datele cu caracter personal în legătură cu site-ul și contul IBM. Operatorul este entitatea care oferă Serviciul, denumită aici IBM.",
-      "Politica se citește împreună cu Termenii și cu Nota privind riscul. Nu este o consultanță.",
+      "Politica se citește împreună cu Termenii. Nu este o consultanță.",
     ],
   },
   {
@@ -180,67 +180,12 @@ const privacyRo: LegalBlock[] = [
   },
 ];
 
-const riskRo: LegalBlock[] = [
-  {
-    h: "1. Scopul notei",
-    p: [
-      "Această notă există ca să fie citită înainte de crearea contului. Este lungă intenționat. Dacă o bifezi, declari că ai avut ocazia să o citești.",
-    ],
-  },
-  {
-    h: "2. Nicio garanție",
-    p: [
-      "Noi nu garantăm veniturile. Te lăsăm să le vezi cu ochii tăi. Nu garantăm profit, stabilitate, număr de tranzacții, funcționare fără erori sau recuperarea oricărei sume.",
-      "Nu garantăm nimic în legătură cu performanța pieței, a brokerului, a terminalului MetaTrader 5, a rețelei blockchain sau a software-ului. Nu ne asumăm rezultatul folosirii botului.",
-    ],
-  },
-  {
-    h: "3. Poți pierde bani",
-    p: [
-      "Tranzacționarea instrumentelor financiare, inclusiv perechile valutare, poate duce la pierderea rapidă a capitalului. Efectul de levier poate mări pierderea. Nu tranzacționa bani pe care nu îți permiți să îi pierzi.",
-      "Performanțele trecute, ale oricărei persoane, ale oricărui fond sau ale oricărei perioade de test, nu sunt o indicație pentru viitor.",
-    ],
-  },
-  {
-    h: "4. Nu este sfat",
-    p: [
-      "Nimic de pe site, în software sau în mesajele noastre nu este sfat de investiții, recomandare personală, ofertă de a cumpăra sau vinde un instrument financiar ori solicitare de a intra într-o tranzacție. IBM nu îți cunoaște situația financiară completă.",
-      "Ești singurul responsabil pentru decizia de a porni, opri, configura sau lăsa botul nesupravegheat.",
-    ],
-  },
-  {
-    h: "5. Software furnizat ca atare",
-    p: [
-      "Software-ul poate avea defecte. Poate rata o cotație, poate dubla o acțiune în condiții de rețea proastă sau poate rămâne inactiv dacă terminalul este închis. Aceste evenimente sunt riscul Utilizatorului.",
-      "În măsura maximă permisă de lege, renunți la pretențiile privind pierderile de tranzacționare rezultate din folosirea sau nefolosirea Serviciului.",
-    ],
-  },
-  {
-    h: "6. Terți",
-    p: [
-      "Brokerul, platforma MetaTrader, furnizorul de server și rețeaua cripto sunt terți. IBM nu controlează spread-ul, slippage-ul, opririle de server sau confirmările blockchain. Nu răspundem pentru actele lor, în măsura permisă de lege.",
-    ],
-  },
-  {
-    h: "7. Afilierea",
-    p: [
-      "Comisionul de afiliere, dacă apare, este un comision pe o licență, nu un venit din tranzacționare și nu este garantat. Prezentarea IBM ca sursă de câștig sigur, făcută de un afiliat, este interzisă și poate duce la anularea cotelor.",
-    ],
-  },
-  {
-    h: "8. Acceptare",
-    p: [
-      "Bifând căsuța de la crearea contului, confirmi că ai citit această notă, că înțelegi că poți pierde bani și că nu te bazezi pe nicio promisiune de venit. Versiunea notei este 2026-10-03.",
-    ],
-  },
-];
-
 const termsEn: LegalBlock[] = [
   {
     h: "1. Parties and acceptance",
     p: [
       "These terms govern access to the IBM website and use of the account, the software license, the MetaTrader 5 bot, and the affiliate program (together, the Service). The operator is called IBM or we. The person who creates an account is the User.",
-      "Creating an account, ticking the acceptance box, and using the Service is full acceptance of these Terms, the Privacy Policy, and the Risk Notice in the version shown on that date. If you disagree, do not create an account.",
+      "Creating an account, ticking the acceptance box, and using the Service is full acceptance of these Terms and the Privacy Policy in the version shown on that date. If you disagree, do not create an account.",
       "This is a contract. It is not legal, tax, or investment advice. The wording is formal on purpose.",
     ],
   },
@@ -348,7 +293,7 @@ const privacyEn: LegalBlock[] = [
     h: "1. Who processes data",
     p: [
       "This policy describes how personal data is processed for the IBM site and account. The controller is the entity that offers the Service, called IBM here.",
-      "Read it with the Terms and the Risk Notice. It is not advice.",
+      "Read it with the Terms. It is not advice.",
     ],
   },
   {
@@ -396,65 +341,17 @@ const privacyEn: LegalBlock[] = [
   },
 ];
 
-const riskEn: LegalBlock[] = [
-  {
-    h: "1. Purpose",
-    p: [
-      "This notice is meant to be read before an account is created. It is long on purpose. If you tick the box, you state that you had the chance to read it.",
-    ],
-  },
-  {
-    h: "2. No guarantee",
-    p: [
-      "We do not guarantee income. We let you see it with your own eyes. We do not guarantee profit, stability, a number of trades, error-free operation, or the recovery of any amount.",
-      "We guarantee nothing about the market, the broker, the MetaTrader 5 terminal, the blockchain, or the software. We do not take on the result of using the bot.",
-    ],
-  },
-  {
-    h: "3. You can lose money",
-    p: [
-      "Trading financial instruments, including currency pairs, can lose capital quickly. Leverage can increase the loss. Do not trade money you cannot afford to lose.",
-      "Past performance of any person, any fund, or any test period is not an indication of the future.",
-    ],
-  },
-  {
-    h: "4. Not advice",
-    p: [
-      "Nothing on the site, in the software, or in our messages is investment advice, a personal recommendation, or an offer to buy or sell a financial instrument. IBM does not know your full financial situation.",
-      "You alone are responsible for starting, stopping, configuring, or leaving the bot unattended.",
-    ],
-  },
-  {
-    h: "5. Software as is",
-    p: [
-      "The software can have defects. It can miss a quote, repeat an action on a bad connection, or stay idle if the terminal is closed. Those events are the User’s risk.",
-      "To the maximum extent the law allows, you give up claims for trading losses that come from using or not using the Service.",
-    ],
-  },
-  {
-    h: "6. Third parties and affiliates",
-    p: [
-      "The broker, MetaTrader, the server provider, and the crypto network are third parties. IBM does not control spread, slippage, server halts, or chain confirmations.",
-      "An affiliate commission, if one appears, is a commission on a license, not trading income, and it is not guaranteed. An affiliate may not present IBM as a source of sure profit. Version 2026-10-03.",
-    ],
-  },
-];
-
 export const LEGAL = {
   ro: {
     termsTitle: "Termeni și condiții",
     privacyTitle: "Politica de confidențialitate",
-    riskTitle: "Notă privind riscul",
     terms: termsRo,
     privacy: privacyRo,
-    risk: riskRo,
   },
   en: {
     termsTitle: "Terms and conditions",
     privacyTitle: "Privacy policy",
-    riskTitle: "Risk notice",
     terms: termsEn,
     privacy: privacyEn,
-    risk: riskEn,
   },
 };
