@@ -1,13 +1,8 @@
-"use client";
-
 import Link from "next/link";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useI18n } from "@/i18n/LanguageProvider";
 import { landingCopy } from "./landing-copy";
 
 export default function HomePage() {
-  const { lang } = useI18n();
-  const c = landingCopy(lang);
+  const c = landingCopy();
 
   return (
     <div className="shell lp">
@@ -17,7 +12,6 @@ export default function HomePage() {
             IBM <span>●</span>
           </div>
           <div className="nav-actions">
-            <LanguageSwitcher compact />
             <Link className="btn" href="/login">
               {c.secondary}
             </Link>
@@ -93,9 +87,9 @@ export default function HomePage() {
 
         <footer className="lp-foot">
           <p>
-            <Link href="/legal/terms">{lang === "ro" ? "Termeni" : "Terms"}</Link>
+            <Link href="/legal/terms">Terms</Link>
             {" · "}
-            <Link href="/legal/privacy">{lang === "ro" ? "Confidențialitate" : "Privacy"}</Link>
+            <Link href="/legal/privacy">Privacy</Link>
           </p>
         </footer>
       </div>
