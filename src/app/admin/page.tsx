@@ -781,7 +781,11 @@ export default function AdminPage() {
             {wallet && wallet.activated && wallet.trx < 5 && (
               <p className="muted">{t("admin.trxHint")}</p>
             )}
-            {wallet?.error && <p className="error">{wallet.error}</p>}
+            {wallet?.error && (
+              <p className="error">
+                {wallet.error === "trongrid_key_rejected" ? t("admin.trongridRejected") : wallet.error}
+              </p>
+            )}
 
             <h3 style={{ fontFamily: "var(--font-display)", marginBottom: "0.35rem" }}>
               {t("admin.chainIn")}

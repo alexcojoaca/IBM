@@ -21,6 +21,13 @@ function headers(): HeadersInit {
   return h;
 }
 
+/** TronGrid answers 401 when the API key is wrong. Public reads still work without it. */
+async function fetchTron(url: string): Promise<Response> {
+  const res = await fetch(url, { headers: headers(), cache: "no-store" });
+  if (res.status !== 401) return res;
+  return fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
+}
+
 function normalizeHash(h: string) {
   return h.trim().replace(/^0x/i, "").toLowerCase();
 }
@@ -82,7 +89,7 @@ export async function verifyUsdtPayment(opts: {
 
   let rows: Trc20Row[] = [];
   try {
-    const res = await fetch(url, { headers: headers(), cache: "no-store" });
+    const res = await fetchTron(url);
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       return {
@@ -130,7 +137,7 @@ async function fetchTransferByTxId(
   // TronGrid events for this tx
   const url = `${TRONGRID}/v1/transactions/${encodeURIComponent(txHash)}/events`;
   try {
-    const res = await fetch(url, { headers: headers(), cache: "no-store" });
+    const res = await fetchTron(url);
     if (!res.ok) return { ok: false, error: "tx events not found" };
     const json = (await res.json()) as {
       data?: Array<{
@@ -242,14 +249,19 @@ export async function companyWalletStatus(): Promise<WalletStatus> {
   };
   if (!address) return { ...base, error: "CRYPTO_WALLET_ADDRESS missing" };
 
+  let keyRejected = false;
+  const accountUrl = `${TRONGRID}/v1/accounts/${encodeURIComponent(address)}`;
+
   try {
-    const accRes = await fetch(`${TRONGRID}/v1/accounts/${encodeURIComponent(address)}`, {
-      headers: headers(),
-      cache: "no-store",
-    });
-    if (!accRes.ok) {
-      return { ...base, error: `TronGrid account ${accRes.status}` };
+    let accRes = await fetch(accountUrl, { headers: headers(), cache: "no-store" });
+    if (accRes.status === 401) {
+      keyRejected = true;
+      accRes = await fetchTron(accountUrl);
     }
+    if (!accRes.ok) {
+      return { ...base, error: keyRejected ? "trongrid_key_rejected" : `TronGrid account ${accRes.status}` };
+    }
+    if (keyRejected) base.error = "trongrid_key_rejected";
     const accJson = (await accRes.json()) as {
       data?: Array<{ balance?: number; trc20?: Array<Record<string, string>> }>;
     };
@@ -270,7 +282,7 @@ export async function companyWalletStatus(): Promise<WalletStatus> {
     const url =
       `${TRONGRID}/v1/accounts/${encodeURIComponent(address)}/transactions/trc20` +
       `?only_confirmed=true&limit=15&contract_address=${encodeURIComponent(USDT_TRC20)}`;
-    const txRes = await fetch(url, { headers: headers(), cache: "no-store" });
+    const txRes = await fetchTron(url);
     if (txRes.ok) {
       const txJson = (await txRes.json()) as { data?: Trc20Row[] };
       base.deposits = (txJson.data || [])
