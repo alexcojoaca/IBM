@@ -29,8 +29,6 @@ export default function AffiliatesPage() {
   const [tree, setTree] = useState<PyramidNode | null>(null);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
-  const [testCode, setTestCode] = useState("");
-  const [busy, setBusy] = useState(false);
 
   const site =
     typeof window !== "undefined"
@@ -126,34 +124,6 @@ export default function AffiliatesPage() {
     setMsg(t("aff.linkCopied"));
   };
 
-  const runTestUnlock = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-    setMsg("");
-    try {
-      const res = await fetch("/api/mlm/test-unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: testCode }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.detail || t("common.failed"));
-      setMsg(
-        t("aff.testOk", {
-          key: body.license_key,
-          company: body.distribution?.company ?? "—",
-        })
-      );
-      setTestCode("");
-      await load();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t("common.failed"));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const earned = comms.reduce((s, c) => s + Number(c.amount_eur || 0), 0);
 
   if (!loaded) {
@@ -178,21 +148,6 @@ export default function AffiliatesPage() {
             <a className="btn btn-primary" href="/dashboard/buy">
               {t("aff.buy")}
             </a>
-            <form onSubmit={runTestUnlock} style={{ marginTop: "1.25rem" }}>
-              <p className="muted">{t("aff.testHint")}</p>
-              <div className="row">
-                <input
-                  value={testCode}
-                  onChange={(e) => setTestCode(e.target.value)}
-                  placeholder="IBM-TEST-MLM-2026"
-                  style={{ flex: 1, minWidth: 180 }}
-                />
-                <button className="btn" disabled={busy} type="submit">
-                  {t("aff.unlockTest")}
-                </button>
-              </div>
-              {error && <p className="error">{error}</p>}
-            </form>
           </div>
         </main>
       </div>
@@ -291,24 +246,6 @@ export default function AffiliatesPage() {
             </table>
           )}
         </div>
-
-        <form className="panel" onSubmit={runTestUnlock} style={{ maxWidth: 560 }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("aff.testTitle")}</h2>
-          <p className="muted">
-            {t("aff.testSub")} <code>IBM-TEST-MLM-2026</code>
-          </p>
-          <div className="row">
-            <input
-              value={testCode}
-              onChange={(e) => setTestCode(e.target.value)}
-              placeholder="IBM-TEST-MLM-2026"
-              style={{ flex: 1 }}
-            />
-            <button className="btn" disabled={busy} type="submit">
-              {t("aff.runTest")}
-            </button>
-          </div>
-        </form>
       </main>
     </div>
   );

@@ -52,7 +52,6 @@ export function DashNav({ active, isAdmin, showAffiliates }: Props) {
 
   const links: { href: string; label: string; external?: boolean }[] = [
     { href: "/dashboard", label: t("nav.licenses") },
-    { href: "/bot/", label: t("nav.openBot"), external: true },
     { href: "/dashboard/buy", label: t("nav.buy") },
     { href: "/dashboard/download", label: t("nav.download") },
     { href: "/dashboard/devices", label: t("nav.devices") },

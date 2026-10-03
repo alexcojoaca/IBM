@@ -288,7 +288,6 @@ export default function AdminPage() {
           {t("admin.overview")}
         </Link>
         <Link href="/dashboard">{t("admin.userDash")}</Link>
-        <Link href="/bot/">{t("nav.openBot")}</Link>
         <Link href="/">{t("admin.landing")}</Link>
         <button className="btn" type="button" style={{ marginTop: "1.25rem" }} onClick={() => load()}>
           {t("admin.refresh")}

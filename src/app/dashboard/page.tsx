@@ -20,7 +20,6 @@ export default function DashboardPage() {
   const { t } = useI18n();
   const [name, setName] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [refCode, setRefCode] = useState("");
   const [licenses, setLicenses] = useState<License[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -36,12 +35,11 @@ export default function DashboardPage() {
       }
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, role, referral_code")
+        .select("full_name, role")
         .eq("id", user.id)
         .maybeSingle();
       setName(profile?.full_name || "");
       setIsAdmin(profile?.role === "admin");
-      setRefCode(profile?.referral_code || "");
       const { data } = await supabase
         .from("licenses")
         .select("id, license_key, plan, status, expires_at")
@@ -83,13 +81,6 @@ export default function DashboardPage() {
             </Link>
           </div>
         )}
-
-        <div className="panel" style={{ marginBottom: "1rem" }}>
-          <strong>{t("dash.referral")}</strong>
-          <p className="muted" style={{ margin: "0.35rem 0 0" }}>
-            {refCode || "—"} {t("dash.referralHint")}
-          </p>
-        </div>
 
         <div className="panel">
           <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("dash.licenses")}</h2>
