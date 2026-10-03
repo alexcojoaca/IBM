@@ -1,18 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const search = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [refCode, setRefCode] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const ref = (search.get("ref") || "").trim().toUpperCase();
+    if (ref) {
+      setRefCode(ref);
+      try {
+        localStorage.setItem("ibm_ref", ref);
+      } catch {
+        /* ignore */
+      }
+    } else {
+      try {
+        const saved = (localStorage.getItem("ibm_ref") || "").toUpperCase();
+        if (saved) setRefCode(saved);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [search]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -23,12 +44,16 @@ export default function RegisterPage() {
     try {
       const supabase = createClient();
       const origin = window.location.origin;
+      const referral = refCode.trim().toUpperCase();
 
       const { data, error: err } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
-          data: { full_name: fullName.trim() },
+          data: {
+            full_name: fullName.trim(),
+            ...(referral ? { referral_code: referral } : {}),
+          },
           emailRedirectTo: `${origin}/login`,
         },
       });
@@ -37,7 +62,7 @@ export default function RegisterPage() {
         const msg = err.message || "";
         if (/rate limit/i.test(msg)) {
           setError(
-            "Supabase email limit hit. In Supabase go to: Authentication → Providers → Email → turn OFF “Confirm email”, Save, wait 1 hour (or try another email), then register again."
+            "Supabase email limit hit. Disable Confirm email in Supabase Auth settings, then try again."
           );
         } else {
           setError(msg);
@@ -45,7 +70,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Some projects return empty user when email is already registered
       if (!data.user) {
         setError("Could not create account. Try another email or log in.");
         return;
@@ -57,10 +81,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Email confirmation is ON in Supabase
-      setInfo(
-        "Account created. If email confirmation is enabled in Supabase, open the link from your inbox, then log in. For local testing: Supabase → Authentication → Providers → Email → disable “Confirm email”."
-      );
+      setInfo("Account created. Log in after email confirmation (if enabled).");
     } catch (e: any) {
       setError(e?.message || "Unexpected error during signup.");
     } finally {
@@ -72,7 +93,12 @@ export default function RegisterPage() {
     <div className="shell auth-wrap">
       <form className="auth-card" onSubmit={onSubmit}>
         <h1>Create account</h1>
-        <p>Your licenses will appear here after purchase.</p>
+        <p>Your licenses and affiliate tools appear after purchase.</p>
+        {refCode && (
+          <p className="ok" style={{ marginTop: 0 }}>
+            Invited with code <strong>{refCode}</strong>
+          </p>
+        )}
         {error && <p className="error">{error}</p>}
         {info && <p className="ok">{info}</p>}
         <div className="form-row">
@@ -93,6 +119,14 @@ export default function RegisterPage() {
             required
           />
         </div>
+        <div className="form-row">
+          <label>Affiliate code (optional)</label>
+          <input
+            value={refCode}
+            onChange={(e) => setRefCode(e.target.value.toUpperCase())}
+            placeholder="From your invite link"
+          />
+        </div>
         <button className="btn btn-primary btn-block" disabled={loading}>
           {loading ? "Creating…" : "Register"}
         </button>
@@ -101,5 +135,19 @@ export default function RegisterPage() {
         </p>
       </form>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="shell auth-wrap">
+          <p className="muted">Loading…</p>
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 }

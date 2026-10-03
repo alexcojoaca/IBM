@@ -15,3 +15,6 @@ CRYPTO_CURRENCY=USDT
 NEXT_PUBLIC_CRYPTO_AMOUNT=150
 
 NEXT_PUBLIC_CLIENT_DOWNLOAD_URL=https://github.com/alexcojoaca/IBM/releases/download/IBMClient/IBM.zip
+
+# MLM test unlock (simulates paid €150)
+MLM_TEST_CODE=IBM-TEST-MLM-2026

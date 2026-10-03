@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { generateLicenseKey } from "@/lib/license";
+import { AdminNetworkBoard, type PyramidNode } from "@/components/NetworkPyramid";
 
 type ProfileBrief = {
   full_name: string | null;
@@ -61,6 +62,7 @@ export default function AdminPage() {
   const [payMsg, setPayMsg] = useState("");
   const [q, setQ] = useState("");
   const [adminName, setAdminName] = useState("");
+  const [forest, setForest] = useState<PyramidNode[]>([]);
 
   const load = async () => {
     const supabase = createClient();
@@ -118,6 +120,12 @@ export default function AdminPage() {
       .select("id, license_id, is_active")
       .eq("is_active", true);
     setActiveDevices(((devices as DeviceRow[]) || []).length);
+
+    const treeRes = await fetch("/api/mlm/tree?mode=admin");
+    if (treeRes.ok) {
+      const body = await treeRes.json();
+      setForest((body.trees as PyramidNode[]) || []);
+    }
   };
 
   useEffect(() => {
@@ -178,6 +186,9 @@ export default function AdminPage() {
     if (err) {
       setError(err.message);
       return;
+    }
+    if (userId) {
+      await supabase.from("profiles").update({ affiliates_unlocked: true }).eq("id", userId);
     }
     setCreated(key);
     setEmail("");
@@ -403,6 +414,14 @@ export default function AdminPage() {
             </button>
           </div>
         </form>
+
+        <div className="panel" style={{ marginBottom: "1.25rem" }}>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Network canvas</h2>
+          <p className="muted">
+            Full MLM map — who brought whom (3 levels). Split: company €100 · L1 €30 · L2 €15 · L3 €5.
+          </p>
+          <AdminNetworkBoard trees={forest} />
+        </div>
 
         <div className="panel">
           <div className="admin-head" style={{ marginBottom: "0.75rem" }}>

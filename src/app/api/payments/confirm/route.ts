@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { issueLicenseForUser } from "@/lib/license-server";
+import { distributeCommissions, unlockAffiliates } from "@/lib/mlm";
 
-/** Admin confirms a crypto payment → issues license to the buyer. */
+/** Admin confirms crypto payment → license + MLM commissions */
 export async function POST(req: Request) {
   const supabase = await createClient();
   const {
@@ -29,6 +30,7 @@ export async function POST(req: Request) {
 
   if (error || !order) return NextResponse.json({ detail: "Order not found" }, { status: 404 });
   if (order.status === "paid" && order.license_id) {
+    await unlockAffiliates(order.user_id);
     return NextResponse.json({ ok: true, license_id: order.license_id, already: true });
   }
 
@@ -43,9 +45,17 @@ export async function POST(req: Request) {
     })
     .eq("id", order.id);
 
+  await unlockAffiliates(order.user_id);
+  const dist = await distributeCommissions({
+    buyerId: order.user_id,
+    paymentOrderId: order.id,
+    licenseId: license.id,
+  });
+
   return NextResponse.json({
     ok: true,
     license_id: license.id,
     license_key: license.license_key,
+    distribution: dist,
   });
 }
