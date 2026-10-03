@@ -61,7 +61,9 @@ export default function DevicesPage() {
   const disconnect = async (id: string) => {
     const supabase = createClient();
     await supabase.from("license_devices").update({ is_active: false }).eq("id", id);
-    setMsg("Device disconnected. You can activate the bot on another PC.");
+    setMsg(
+      "Device disconnected. The bot will ask for the license key again within a few seconds."
+    );
     await load();
   };
 

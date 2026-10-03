@@ -191,9 +191,10 @@ export async function validateLicense(input: {
     .eq("is_active", true)
     .maybeSingle();
 
+  // If dashboard Disconnect flipped is_active=false, do NOT auto-rebind.
+  // User must enter the key again (activate).
   if (!device) {
-    // Auto re-bind if seat free (same as activate soft path)
-    return activateLicense(input);
+    throw new Error("Disconnected from your IBM account. Enter your license key again.");
   }
 
   await supabase
