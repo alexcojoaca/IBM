@@ -31,6 +31,7 @@ export default function HomePage() {
           <p className="lp-kicker">{c.kicker}</p>
           <h1>{c.hero}</h1>
           <p className="lp-lead">{c.lead}</p>
+          <p className="lp-eyes">{c.eyes}</p>
           <div className="hero-cta">
             <Link className="btn btn-primary" href="/register">
               {c.primary}
@@ -41,48 +42,50 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="lp-cards">
-          {c.advantages.map(([title, body]) => (
-            <article key={title}>
-              <h2>{title}</h2>
-              <p>{body}</p>
-            </article>
-          ))}
-        </section>
-
-        <section className="section lp-desk">
-          <p className="lp-kicker">{c.deskTitle}</p>
-          <h2>{c.deskLead}</h2>
-          <p>{c.deskBody}</p>
-        </section>
-
         <section className="section">
-          <h2>{c.netTitle}</h2>
-          <p className="lead">{c.netLead}</p>
-          <div className="grid-3">
-            {c.netPoints.map((point) => (
-              <article key={point} className="panel">
-                <p>{point}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="section">
-          <h2>{c.whyTitle}</h2>
-          <div className="grid-3">
-            {c.why.map(([title, body]) => (
-              <article key={title} className="feature">
-                <h3>{title}</h3>
+          <h2>{c.botTitle}</h2>
+          <p className="lead">{c.botLead}</p>
+          <p className="lp-body">{c.botBody}</p>
+          <div className="lp-cards">
+            {c.botPoints.map(([title, body]) => (
+              <article key={title}>
+                <h2>{title}</h2>
                 <p>{body}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="section lp-stay">
-          <h2>{c.stayTitle}</h2>
-          <p>{c.stayBody}</p>
+        <section className="section lp-desk">
+          <p className="lp-kicker">{c.simonsKicker}</p>
+          <h2>{c.simonsTitle}</h2>
+          <div className="lp-prose">
+            {c.simons.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+        </section>
+
+        <section className="section">
+          <h2>{c.whyTitle}</h2>
+          <p className="lead">{c.whyLead}</p>
+          <div className="lp-why">
+            {c.why.map(([title, body], index) => (
+              <article key={title}>
+                <span>0{index + 1}</span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{body}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="section lp-close">
+          <h2>{c.closeTitle}</h2>
+          <p>{c.closeBody}</p>
+          <p className="lp-eyes">{c.eyes}</p>
           <Link className="btn btn-primary" href="/register">
             {c.primary}
           </Link>

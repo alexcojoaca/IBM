@@ -574,11 +574,66 @@ select {
   grid-template-columns: repeat(4, 1fr);
 }
 
-.lp-stay p {
+.lp-eyes {
+  margin: 1rem 0 0;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.lp-body {
   color: var(--muted);
-  line-height: 1.6;
+  line-height: 1.65;
   max-width: 42rem;
   margin: 0 0 1.25rem;
+  font-size: 1.05rem;
+}
+
+.lp-why {
+  display: grid;
+  gap: 0;
+}
+
+.lp-why article {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.5rem;
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.lp-why span {
+  font-family: var(--font-display), sans-serif;
+  color: var(--accent);
+  font-size: 1.15rem;
+}
+
+.lp-why h3 {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.lp-why p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.lp-close h2 {
+  max-width: 16ch;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 0.98;
+}
+
+.lp-close p {
+  color: var(--muted);
+  max-width: 36rem;
+  line-height: 1.6;
+}
+
+.lp-close .lp-eyes {
+  margin-bottom: 1.25rem;
 }
 
 .lp-foot {
