@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      // SPA fallback for the trading bot UI (static files in public/bot)
+      { source: "/bot", destination: "/bot/index.html" },
+      { source: "/bot/", destination: "/bot/index.html" },
+    ];
+  },
 };
 
 export default nextConfig;

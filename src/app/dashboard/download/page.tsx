@@ -29,12 +29,20 @@ export default async function DownloadPage() {
     <div className="shell dash">
       <DashNav active="/dashboard/download" isAdmin={profile?.role === "admin"} />
       <main className="dash-main">
-        <h1>Download IBM</h1>
+        <h1>Download bridge</h1>
         <div className="panel" style={{ maxWidth: 560 }}>
           <p>
-            Windows package: <code>IBM-Client.zip</code>. Unzip, run <code>Start IBM.cmd</code>, then
-            enter your license key from the Licenses page.
+            The trading UI runs on this website. On Windows you only install the{" "}
+            <strong>MetaTrader bridge</strong> (<code>IBM-Client.zip</code>).
           </p>
+          <ol className="muted">
+            <li>Download and unzip</li>
+            <li>Run <code>Start IBM.cmd</code> (keep the window open)</li>
+            <li>
+              Open <a href="/bot/">Open bot</a> here and enter your license key
+            </li>
+            <li>Connect MetaTrader 5</li>
+          </ol>
           {!hasLicense ? (
             <p className="muted">
               Buy a license first to unlock the download.{" "}
