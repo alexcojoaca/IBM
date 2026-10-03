@@ -4,7 +4,7 @@ import { createServiceClient } from "@/lib/supabase/admin";
 import { issueLicenseForUser, LICENSE_PRICE_EUR } from "@/lib/license-server";
 import { distributeCommissions, unlockAffiliates } from "@/lib/mlm";
 
-/** Create payment order. With tx_hash → auto-issue license + MLM immediately. */
+/** Create payment order. With tx_hash → always auto-issue license for the current user. */
 export async function POST(req: Request) {
   const supabase = await createClient();
   const {
@@ -14,33 +14,40 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const txHash = typeof body.tx_hash === "string" ? body.tx_hash.trim() : "";
+  if (!txHash) {
+    return NextResponse.json(
+      { detail: "Transaction hash required to unlock license" },
+      { status: 400 }
+    );
+  }
 
   const admin = createServiceClient();
   const wallet = process.env.CRYPTO_WALLET_ADDRESS || "";
   const network = process.env.CRYPTO_NETWORK || "TRC20";
   const currency = process.env.CRYPTO_CURRENCY || "USDT";
 
-  // Same tx already paid → return existing license (idempotent)
-  if (txHash) {
-    const { data: prior } = await admin
-      .from("payment_orders")
-      .select("id, license_id, status, user_id")
-      .eq("tx_hash", txHash)
-      .eq("status", "paid")
+  // Same user double-submit of same hash → return their existing license (not another account's)
+  const { data: prior } = await admin
+    .from("payment_orders")
+    .select("id, license_id, status, user_id")
+    .eq("tx_hash", txHash)
+    .eq("user_id", user.id)
+    .eq("status", "paid")
+    .maybeSingle();
+
+  if (prior?.license_id) {
+    const { data: lic } = await admin
+      .from("licenses")
+      .select("id, license_key")
+      .eq("id", prior.license_id)
       .maybeSingle();
-    if (prior?.license_id) {
-      const { data: lic } = await admin
-        .from("licenses")
-        .select("id, license_key")
-        .eq("id", prior.license_id)
-        .maybeSingle();
-      return NextResponse.json({
-        order: prior,
-        license_id: prior.license_id,
-        license_key: lic?.license_key || null,
-        already: true,
-      });
-    }
+    await unlockAffiliates(user.id);
+    return NextResponse.json({
+      order: prior,
+      license_id: prior.license_id,
+      license_key: lic?.license_key || null,
+      already: true,
+    });
   }
 
   const { data: order, error } = await admin
@@ -51,18 +58,13 @@ export async function POST(req: Request) {
       currency,
       network,
       wallet_address: wallet,
-      tx_hash: txHash || null,
-      status: txHash ? "submitted" : "pending",
+      tx_hash: txHash,
+      status: "submitted",
     })
     .select("*")
     .single();
 
   if (error) return NextResponse.json({ detail: error.message }, { status: 400 });
-
-  // No hash yet — order stays pending until user submits with tx
-  if (!txHash) {
-    return NextResponse.json({ order });
-  }
 
   try {
     const license = await issueLicenseForUser(user.id, `Auto-paid ${order.id}`);
