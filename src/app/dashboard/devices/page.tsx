@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashNav } from "@/components/DashNav";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/i18n/LanguageProvider";
 
 type Device = {
   id: string;
@@ -12,11 +13,11 @@ type Device = {
   last_seen_at: string | null;
   is_active: boolean;
   license_id: string;
-  licenses?: { license_key: string; key_prefix: string } | null;
 };
 
 export default function DevicesPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [isAdmin, setIsAdmin] = useState(false);
   const [devices, setDevices] = useState<Device[]>([]);
   const [msg, setMsg] = useState("");
@@ -61,9 +62,7 @@ export default function DevicesPage() {
   const disconnect = async (id: string) => {
     const supabase = createClient();
     await supabase.from("license_devices").update({ is_active: false }).eq("id", id);
-    setMsg(
-      "Device disconnected. The bot will ask for the license key again within a few seconds."
-    );
+    setMsg(t("devices.disconnectedMsg"));
     await load();
   };
 
@@ -71,21 +70,21 @@ export default function DevicesPage() {
     <div className="shell dash">
       <DashNav active="/dashboard/devices" isAdmin={isAdmin} />
       <main className="dash-main">
-        <h1>Devices</h1>
+        <h1>{t("devices.title")}</h1>
         <p className="muted" style={{ marginTop: "-0.5rem" }}>
-          Each license allows 1 active device. Disconnect here to free the seat.
+          {t("devices.sub")}
         </p>
         {msg && <p className="ok">{msg}</p>}
         <div className="panel">
           {!devices.length ? (
-            <p className="muted">No devices yet. Activate the bot with your license key.</p>
+            <p className="muted">{t("devices.none")}</p>
           ) : (
             <table className="table">
               <thead>
                 <tr>
-                  <th>Device</th>
-                  <th>Last seen</th>
-                  <th>Status</th>
+                  <th>{t("devices.colDevice")}</th>
+                  <th>{t("devices.colLast")}</th>
+                  <th>{t("devices.colStatus")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -93,7 +92,7 @@ export default function DevicesPage() {
                 {devices.map((d) => (
                   <tr key={d.id}>
                     <td>
-                      {d.device_name || "IBM Client"}
+                      {d.device_name || t("devices.defaultName")}
                       <div className="muted" style={{ fontSize: "0.75rem" }}>
                         {d.device_fingerprint.slice(0, 18)}…
                       </div>
@@ -101,11 +100,11 @@ export default function DevicesPage() {
                     <td>
                       {d.last_seen_at ? new Date(d.last_seen_at).toLocaleString() : "—"}
                     </td>
-                    <td>{d.is_active ? "active" : "disconnected"}</td>
+                    <td>{d.is_active ? t("common.active") : t("common.disconnected")}</td>
                     <td>
                       {d.is_active && (
                         <button className="btn" type="button" onClick={() => disconnect(d.id)}>
-                          Disconnect
+                          {t("devices.disconnect")}
                         </button>
                       )}
                     </td>

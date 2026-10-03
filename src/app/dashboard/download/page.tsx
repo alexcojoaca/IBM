@@ -1,56 +1,80 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DashNav } from "@/components/DashNav";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/i18n/LanguageProvider";
 
-export default async function DownloadPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const { data: licenses } = await supabase
-    .from("licenses")
-    .select("id, status")
-    .eq("user_id", user.id)
-    .eq("status", "active");
-
-  const hasLicense = !!licenses?.length;
+export default function DownloadPage() {
+  const router = useRouter();
+  const { t } = useI18n();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [hasLicense, setHasLicense] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const downloadUrl =
     process.env.NEXT_PUBLIC_CLIENT_DOWNLOAD_URL || "/downloads/IBM-Client.zip";
 
+  useEffect(() => {
+    (async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      setIsAdmin(profile?.role === "admin");
+      const { data: licenses } = await supabase
+        .from("licenses")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "active");
+      setHasLicense(!!licenses?.length);
+      setLoaded(true);
+    })();
+  }, [router]);
+
+  if (!loaded) {
+    return (
+      <div className="shell dash">
+        <DashNav active="/dashboard/download" />
+        <main className="dash-main">
+          <p className="muted">{t("common.loading")}</p>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="shell dash">
-      <DashNav active="/dashboard/download" isAdmin={profile?.role === "admin"} />
+      <DashNav active="/dashboard/download" isAdmin={isAdmin} />
       <main className="dash-main">
-        <h1>Download bridge</h1>
+        <h1>{t("dl.title")}</h1>
         <div className="panel" style={{ maxWidth: 560 }}>
-          <p>
-            The trading UI runs on this website. On Windows you only install the{" "}
-            <strong>MetaTrader bridge</strong> (<code>IBM-Client.zip</code>).
-          </p>
+          <p>{t("dl.body")}</p>
           <ol className="muted">
-            <li>Download and unzip</li>
-            <li>Run <code>Start IBM.cmd</code> (keep the window open)</li>
+            <li>{t("dl.step1")}</li>
+            <li>{t("dl.step2")}</li>
             <li>
-              Open <a href="/bot/">Open bot</a> here and enter your license key
+              <a href="/bot/">{t("nav.openBot")}</a> — {t("dl.step3")}
             </li>
-            <li>Connect MetaTrader 5</li>
+            <li>{t("dl.step4")}</li>
           </ol>
           {!hasLicense ? (
             <p className="muted">
-              Buy a license first to unlock the download.{" "}
-              <a href="/dashboard/buy">Go to Buy license →</a>
+              {t("dl.needLicense")}{" "}
+              <a href="/dashboard/buy">{t("dl.goBuy")}</a>
             </p>
           ) : (
             <a className="btn btn-primary" href={downloadUrl}>
-              Download IBM-Client.zip
+              {t("dl.download")}
             </a>
           )}
         </div>

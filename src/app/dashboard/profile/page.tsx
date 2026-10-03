@@ -4,14 +4,16 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashNav } from "@/components/DashNav";
 import { createClient } from "@/lib/supabase/client";
-import { LANGS } from "@/lib/langs";
+import { LANGS, type LangCode } from "@/lib/langs";
+import { useI18n } from "@/i18n/LanguageProvider";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { t, setLanguage } = useI18n();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("");
-  const [language, setLanguage] = useState("en");
+  const [language, setLocalLanguage] = useState<LangCode>("en");
   const [email, setEmail] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -38,7 +40,7 @@ export default function ProfilePage() {
         setFullName(data.full_name || "");
         setPhone(data.phone || "");
         setCountry(data.country || "");
-        setLanguage(data.preferred_language || "en");
+        setLocalLanguage((data.preferred_language as LangCode) || "en");
         setIsAdmin(data.role === "admin");
       }
       setLoaded(true);
@@ -65,8 +67,8 @@ export default function ProfilePage() {
       .eq("id", user.id);
     if (err) setError(err.message);
     else {
-      setMsg("Saved.");
-      localStorage.setItem("ibm_language", language);
+      await setLanguage(language, false);
+      setMsg(t("profile.saved"));
     }
   };
 
@@ -75,7 +77,7 @@ export default function ProfilePage() {
       <div className="shell dash">
         <DashNav active="/dashboard/profile" />
         <main className="dash-main">
-          <p className="muted">Loading…</p>
+          <p className="muted">{t("common.loading")}</p>
         </main>
       </div>
     );
@@ -85,32 +87,39 @@ export default function ProfilePage() {
     <div className="shell dash">
       <DashNav active="/dashboard/profile" isAdmin={isAdmin} />
       <main className="dash-main">
-        <h1>Profile</h1>
+        <h1>{t("profile.title")}</h1>
         <p className="muted" style={{ marginTop: "-0.5rem" }}>
-          This name appears in the IBM bot after you activate your license.
+          {t("profile.sub")}
         </p>
         <form className="panel" onSubmit={save} style={{ maxWidth: 480 }}>
           {error && <p className="error">{error}</p>}
           {msg && <p className="ok">{msg}</p>}
           <div className="form-row">
-            <label>Email</label>
+            <label>{t("common.email")}</label>
             <input value={email} disabled />
           </div>
           <div className="form-row">
-            <label>Full name</label>
+            <label>{t("common.fullName")}</label>
             <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
           </div>
           <div className="form-row">
-            <label>Phone</label>
+            <label>{t("profile.phone")}</label>
             <input value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
           <div className="form-row">
-            <label>Country</label>
+            <label>{t("profile.country")}</label>
             <input value={country} onChange={(e) => setCountry(e.target.value)} />
           </div>
           <div className="form-row">
-            <label>Language</label>
-            <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+            <label>{t("common.language")}</label>
+            <select
+              value={language}
+              onChange={(e) => {
+                const code = e.target.value as LangCode;
+                setLocalLanguage(code);
+                void setLanguage(code, false);
+              }}
+            >
               {LANGS.map((l) => (
                 <option key={l.code} value={l.code}>
                   {l.label}
@@ -119,7 +128,7 @@ export default function ProfilePage() {
             </select>
           </div>
           <button className="btn btn-primary" type="submit">
-            Save profile
+            {t("profile.save")}
           </button>
         </form>
       </main>

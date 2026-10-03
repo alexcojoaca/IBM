@@ -1,6 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useI18n } from "@/i18n/LanguageProvider";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function HomePage() {
+  const { t } = useI18n();
+
   return (
     <div className="shell">
       <div className="container">
@@ -8,12 +14,13 @@ export default function HomePage() {
           <div className="brand">
             IBM <span>●</span>
           </div>
-          <div className="nav-actions">
+          <div className="nav-actions" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <LanguageSwitcher compact />
             <Link className="btn" href="/login">
-              Log in
+              {t("nav.login")}
             </Link>
             <Link className="btn btn-primary" href="/register">
-              Get started
+              {t("nav.getStarted")}
             </Link>
           </div>
         </header>
@@ -23,38 +30,35 @@ export default function HomePage() {
             IBM
           </div>
           <p className="muted" style={{ letterSpacing: "0.04em", marginTop: "-0.35rem" }}>
-            International Business Multiplier
+            {t("brand.tagline")}
           </p>
-          <h1>License. Download. Trade on MetaTrader 5.</h1>
-          <p>
-            Create your account, buy a Professional license (€150 / year / 1 device), download the
-            Windows bot, and activate with your personal key — always saved in your dashboard.
-          </p>
+          <h1>{t("home.hero")}</h1>
+          <p>{t("home.lead")}</p>
           <div className="hero-cta">
             <Link className="btn btn-primary" href="/register">
-              Create account
+              {t("home.createAccount")}
             </Link>
             <Link className="btn" href="/login">
-              I already have an account
+              {t("home.haveAccount")}
             </Link>
           </div>
         </section>
 
         <section className="section">
-          <h2>How it works</h2>
-          <p className="lead">One account. Your key. Your bot.</p>
+          <h2>{t("home.how")}</h2>
+          <p className="lead">{t("home.howLead")}</p>
           <div className="grid-3">
             <div className="feature">
-              <h3>1. Account</h3>
-              <p>Register with email and password. Edit profile, language, and settings anytime.</p>
+              <h3>{t("home.step1")}</h3>
+              <p>{t("home.step1Body")}</p>
             </div>
             <div className="feature">
-              <h3>2. License €150</h3>
-              <p>Pay with crypto. After confirmation your key appears in Licenses — never lose it.</p>
+              <h3>{t("home.step2")}</h3>
+              <p>{t("home.step2Body")}</p>
             </div>
             <div className="feature">
-              <h3>3. Download &amp; trade</h3>
-              <p>Get IBM-Client.zip, enter the key once. Disconnect devices from the dashboard if you switch PC.</p>
+              <h3>{t("home.step3")}</h3>
+              <p>{t("home.step3Body")}</p>
             </div>
           </div>
         </section>

@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashNav } from "@/components/DashNav";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/i18n/LanguageProvider";
 
 type Order = {
   id: string;
@@ -26,6 +27,7 @@ type PayConfig = {
 
 export default function BuyPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [isAdmin, setIsAdmin] = useState(false);
   const [txHash, setTxHash] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
@@ -63,13 +65,15 @@ export default function BuyPage() {
     fetch("/api/payments/config")
       .then((r) => r.json())
       .then((j) => setCfg(j))
-      .catch(() => setCfg({ wallet: "", network: "TRC20", currency: "USDT", amount: "150", amount_eur: 150 }));
+      .catch(() =>
+        setCfg({ wallet: "", network: "TRC20", currency: "USDT", amount: "150", amount_eur: 150 })
+      );
   }, []);
 
   const copyWallet = async () => {
     if (!cfg?.wallet) return;
     await navigator.clipboard.writeText(cfg.wallet);
-    setCopyMsg("Copied ✓");
+    setCopyMsg(t("common.copied"));
     setTimeout(() => setCopyMsg(""), 2000);
   };
 
@@ -85,16 +89,12 @@ export default function BuyPage() {
         body: JSON.stringify({ tx_hash: txHash }),
       });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.detail || "Failed");
-      setMsg(
-        txHash
-          ? "Payment submitted. We will unlock your license after the transfer is confirmed."
-          : "Order created. Send the payment, then submit again with your transaction hash."
-      );
+      if (!res.ok) throw new Error(body.detail || t("common.failed"));
+      setMsg(txHash ? t("buy.msgWithHash") : t("buy.msgNoHash"));
       setTxHash("");
       await load();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed");
+      setError(err instanceof Error ? err.message : t("common.failed"));
     } finally {
       setLoading(false);
     }
@@ -109,73 +109,63 @@ export default function BuyPage() {
     <div className="shell dash">
       <DashNav active="/dashboard/buy" isAdmin={isAdmin} />
       <main className="dash-main">
-        <h1>Buy license</h1>
+        <h1>{t("buy.title")}</h1>
         <p className="muted" style={{ marginTop: "-0.5rem" }}>
-          Professional · 1 year · 1 device · €150
+          {t("buy.sub")}
         </p>
 
         <div className="panel" style={{ marginBottom: "1rem", maxWidth: 560 }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Crypto payment</h2>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("buy.crypto")}</h2>
           {!cfg ? (
-            <p className="muted">Loading payment details…</p>
+            <p className="muted">{t("buy.loadingPay")}</p>
           ) : (
             <>
               <p>
-                Price: <strong>€150</strong> — pay{" "}
-                <strong>
-                  {amountCrypto} {currency}
-                </strong>{" "}
-                on <strong>{network}</strong> to:
+                {t("buy.priceLine", { amount: amountCrypto, currency, network })}
               </p>
               {wallet ? (
                 <div style={{ marginBottom: "0.75rem" }}>
                   <div className="keybox">{wallet}</div>
                   <button className="btn" type="button" style={{ marginTop: "0.5rem" }} onClick={copyWallet}>
-                    Copy address
+                    {t("buy.copyAddr")}
                   </button>
                   {copyMsg && <span className="ok" style={{ marginLeft: 8 }}>{copyMsg}</span>}
                 </div>
               ) : (
-                <p className="error">
-                  Wallet missing on server. On Vercel set CRYPTO_WALLET_ADDRESS (or NEXT_PUBLIC_CRYPTO_WALLET),
-                  then Redeploy.
-                </p>
+                <p className="error">{t("buy.walletMissing")}</p>
               )}
             </>
           )}
-          <p className="muted">
-            After paying, paste the transaction hash below. Your license appears under Licenses once
-            payment is confirmed.
-          </p>
+          <p className="muted">{t("buy.afterPay")}</p>
           <form onSubmit={submit}>
             {error && <p className="error">{error}</p>}
             {msg && <p className="ok">{msg}</p>}
             <div className="form-row">
-              <label>Transaction hash (recommended)</label>
+              <label>{t("buy.txLabel")}</label>
               <input
                 value={txHash}
                 onChange={(e) => setTxHash(e.target.value)}
-                placeholder="Paste tx hash after you pay"
+                placeholder={t("buy.txPlaceholder")}
               />
             </div>
             <button className="btn btn-primary" disabled={loading} type="submit">
-              {loading ? "Submitting…" : "I paid — submit order"}
+              {loading ? t("buy.submitting") : t("buy.submit")}
             </button>
           </form>
         </div>
 
         <div className="panel">
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Your orders</h2>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("buy.orders")}</h2>
           {!orders.length ? (
-            <p className="muted">No orders yet.</p>
+            <p className="muted">{t("buy.noOrders")}</p>
           ) : (
             <table className="table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Tx</th>
+                  <th>{t("buy.colDate")}</th>
+                  <th>{t("buy.colAmount")}</th>
+                  <th>{t("buy.colStatus")}</th>
+                  <th>{t("buy.colTx")}</th>
                 </tr>
               </thead>
               <tbody>

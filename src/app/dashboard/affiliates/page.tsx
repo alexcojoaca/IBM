@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DashNav } from "@/components/DashNav";
 import { NetworkPyramid, type PyramidNode } from "@/components/NetworkPyramid";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/i18n/LanguageProvider";
 
 type Comm = {
   id: string;
@@ -17,6 +18,7 @@ type Comm = {
 
 export default function AffiliatesPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [isAdmin, setIsAdmin] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -76,7 +78,6 @@ export default function AffiliatesPage() {
       return;
     }
 
-    // Ensure referral code
     if (!profile?.referral_code) {
       const code = Math.random().toString(36).slice(2, 10).toUpperCase();
       await supabase.from("profiles").update({ referral_code: code }).eq("id", user.id);
@@ -116,13 +117,13 @@ export default function AffiliatesPage() {
       .update({ crypto_wallet: wallet.trim() || null })
       .eq("id", user.id);
     if (err) setError(err.message);
-    else setMsg("Crypto wallet saved.");
+    else setMsg(t("aff.walletSaved"));
   };
 
   const copyLink = async () => {
     if (!affiliateLink) return;
     await navigator.clipboard.writeText(affiliateLink);
-    setMsg("Affiliate link copied.");
+    setMsg(t("aff.linkCopied"));
   };
 
   const runTestUnlock = async (e: FormEvent) => {
@@ -137,14 +138,17 @@ export default function AffiliatesPage() {
         body: JSON.stringify({ code: testCode }),
       });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.detail || "Failed");
+      if (!res.ok) throw new Error(body.detail || t("common.failed"));
       setMsg(
-        `Test payment OK. License ${body.license_key}. Affiliates unlocked. Company residual €${body.distribution?.company ?? "—"}`
+        t("aff.testOk", {
+          key: body.license_key,
+          company: body.distribution?.company ?? "—",
+        })
       );
       setTestCode("");
       await load();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed");
+      setError(err instanceof Error ? err.message : t("common.failed"));
     } finally {
       setBusy(false);
     }
@@ -157,7 +161,7 @@ export default function AffiliatesPage() {
       <div className="shell dash">
         <DashNav active="/dashboard/affiliates" />
         <main className="dash-main">
-          <p className="muted">Loading…</p>
+          <p className="muted">{t("common.loading")}</p>
         </main>
       </div>
     );
@@ -168,16 +172,14 @@ export default function AffiliatesPage() {
       <div className="shell dash">
         <DashNav active="/dashboard/affiliates" isAdmin={isAdmin} showAffiliates={false} />
         <main className="dash-main">
-          <h1>Affiliates</h1>
+          <h1>{t("aff.title")}</h1>
           <div className="panel" style={{ maxWidth: 520 }}>
-            <p>
-              The affiliate program unlocks after your €150 license payment is confirmed.
-            </p>
+            <p>{t("aff.locked")}</p>
             <a className="btn btn-primary" href="/dashboard/buy">
-              Buy license
+              {t("aff.buy")}
             </a>
             <form onSubmit={runTestUnlock} style={{ marginTop: "1.25rem" }}>
-              <p className="muted">Testing? Enter the test unlock code:</p>
+              <p className="muted">{t("aff.testHint")}</p>
               <div className="row">
                 <input
                   value={testCode}
@@ -186,7 +188,7 @@ export default function AffiliatesPage() {
                   style={{ flex: 1, minWidth: 180 }}
                 />
                 <button className="btn" disabled={busy} type="submit">
-                  Unlock test
+                  {t("aff.unlockTest")}
                 </button>
               </div>
               {error && <p className="error">{error}</p>}
@@ -201,28 +203,28 @@ export default function AffiliatesPage() {
     <div className="shell dash">
       <DashNav active="/dashboard/affiliates" isAdmin={isAdmin} showAffiliates />
       <main className="dash-main">
-        <h1>Affiliates</h1>
+        <h1>{t("aff.title")}</h1>
         <p className="muted" style={{ marginTop: "-0.5rem" }}>
-          Welcome{name ? `, ${name}` : ""}. 3 levels · €30 / €15 / €5 · product €150
+          {name ? t("aff.welcomeNamed", { name }) : t("aff.welcomeAnon")}
         </p>
         {msg && <p className="ok">{msg}</p>}
         {error && <p className="error">{error}</p>}
 
         <div className="stat-grid">
           <div className="stat-card">
-            <span className="muted">Your earnings</span>
+            <span className="muted">{t("aff.earnings")}</span>
             <strong>€{earned.toFixed(0)}</strong>
           </div>
           <div className="stat-card">
-            <span className="muted">Direct (L1)</span>
+            <span className="muted">{t("aff.direct")}</span>
             <strong>{tree?.children.length || 0}</strong>
           </div>
           <div className="stat-card">
-            <span className="muted">Level 2</span>
+            <span className="muted">{t("aff.level2")}</span>
             <strong>{tree?.children.reduce((n, c) => n + c.children.length, 0) || 0}</strong>
           </div>
           <div className="stat-card">
-            <span className="muted">Level 3</span>
+            <span className="muted">{t("aff.level3")}</span>
             <strong>
               {tree?.children.reduce(
                 (n, c) => n + c.children.reduce((m, d) => m + d.children.length, 0),
@@ -233,22 +235,19 @@ export default function AffiliatesPage() {
         </div>
 
         <div className="panel" style={{ marginBottom: "1rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Your affiliate link</h2>
-          <p className="muted">
-            Share this link. When someone buys through it, you earn €30; their recruits pay you €15;
-            third level €5. Company keeps €100 (+ any empty levels).
-          </p>
-          <div className="keybox">{affiliateLink || "Generating…"}</div>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("aff.linkTitle")}</h2>
+          <p className="muted">{t("aff.linkSub")}</p>
+          <div className="keybox">{affiliateLink || t("aff.generating")}</div>
           <button className="btn btn-primary" type="button" style={{ marginTop: "0.65rem" }} onClick={copyLink}>
-            Copy link
+            {t("aff.copyLink")}
           </button>
         </div>
 
         <form className="panel" onSubmit={saveWallet} style={{ marginBottom: "1rem", maxWidth: 560 }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Your USDT wallet</h2>
-          <p className="muted">Where we send your affiliate share (TRC20 recommended).</p>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("aff.walletTitle")}</h2>
+          <p className="muted">{t("aff.walletSub")}</p>
           <div className="form-row">
-            <label>Wallet address</label>
+            <label>{t("aff.walletLabel")}</label>
             <input
               value={wallet}
               onChange={(e) => setWallet(e.target.value)}
@@ -256,27 +255,27 @@ export default function AffiliatesPage() {
             />
           </div>
           <button className="btn btn-primary" type="submit">
-            Save wallet
+            {t("aff.saveWallet")}
           </button>
         </form>
 
         <div className="panel" style={{ marginBottom: "1rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Your network</h2>
-          <NetworkPyramid root={tree} title="3-level pyramid" />
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("aff.network")}</h2>
+          <NetworkPyramid root={tree} title={t("aff.pyramid")} />
         </div>
 
         <div className="panel" style={{ marginBottom: "1rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Commission history</h2>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("aff.history")}</h2>
           {!comms.length ? (
-            <p className="muted">No commissions yet — share your link.</p>
+            <p className="muted">{t("aff.noComms")}</p>
           ) : (
             <table className="table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Level</th>
-                  <th>Amount</th>
-                  <th>Status</th>
+                  <th>{t("aff.colDate")}</th>
+                  <th>{t("aff.colLevel")}</th>
+                  <th>{t("aff.colAmount")}</th>
+                  <th>{t("aff.colStatus")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -294,9 +293,9 @@ export default function AffiliatesPage() {
         </div>
 
         <form className="panel" onSubmit={runTestUnlock} style={{ maxWidth: 560 }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Test unlock</h2>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("aff.testTitle")}</h2>
           <p className="muted">
-            Simulates a paid €150 order (for demos). Code: <code>IBM-TEST-MLM-2026</code>
+            {t("aff.testSub")} <code>IBM-TEST-MLM-2026</code>
           </p>
           <div className="row">
             <input
@@ -306,7 +305,7 @@ export default function AffiliatesPage() {
               style={{ flex: 1 }}
             />
             <button className="btn" disabled={busy} type="submit">
-              Run test payment
+              {t("aff.runTest")}
             </button>
           </div>
         </form>

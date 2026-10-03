@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/i18n/LanguageProvider";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 function RegisterForm() {
   const router = useRouter();
   const search = useSearchParams();
+  const { t } = useI18n();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -61,9 +64,7 @@ function RegisterForm() {
       if (err) {
         const msg = err.message || "";
         if (/rate limit/i.test(msg)) {
-          setError(
-            "Supabase email limit hit. Disable Confirm email in Supabase Auth settings, then try again."
-          );
+          setError(t("register.rateLimit"));
         } else {
           setError(msg);
         }
@@ -71,7 +72,7 @@ function RegisterForm() {
       }
 
       if (!data.user) {
-        setError("Could not create account. Try another email or log in.");
+        setError(t("register.couldNot"));
         return;
       }
 
@@ -81,9 +82,9 @@ function RegisterForm() {
         return;
       }
 
-      setInfo("Account created. Log in after email confirmation (if enabled).");
-    } catch (e: any) {
-      setError(e?.message || "Unexpected error during signup.");
+      setInfo(t("register.created"));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t("register.unexpected"));
     } finally {
       setLoading(false);
     }
@@ -91,26 +92,29 @@ function RegisterForm() {
 
   return (
     <div className="shell auth-wrap">
+      <div style={{ position: "absolute", top: 16, right: 16 }}>
+        <LanguageSwitcher compact />
+      </div>
       <form className="auth-card" onSubmit={onSubmit}>
-        <h1>Create account</h1>
-        <p>Your licenses and affiliate tools appear after purchase.</p>
+        <h1>{t("register.title")}</h1>
+        <p>{t("register.sub")}</p>
         {refCode && (
           <p className="ok" style={{ marginTop: 0 }}>
-            Invited with code <strong>{refCode}</strong>
+            {t("register.invited")} <strong>{refCode}</strong>
           </p>
         )}
         {error && <p className="error">{error}</p>}
         {info && <p className="ok">{info}</p>}
         <div className="form-row">
-          <label>Full name</label>
+          <label>{t("common.fullName")}</label>
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
         </div>
         <div className="form-row">
-          <label>Email</label>
+          <label>{t("common.email")}</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
         <div className="form-row">
-          <label>Password (min 8 characters)</label>
+          <label>{t("register.passwordLabel")}</label>
           <input
             type="password"
             value={password}
@@ -120,18 +124,18 @@ function RegisterForm() {
           />
         </div>
         <div className="form-row">
-          <label>Affiliate code (optional)</label>
+          <label>{t("register.refLabel")}</label>
           <input
             value={refCode}
             onChange={(e) => setRefCode(e.target.value.toUpperCase())}
-            placeholder="From your invite link"
+            placeholder={t("register.refPlaceholder")}
           />
         </div>
         <button className="btn btn-primary btn-block" disabled={loading}>
-          {loading ? "Creating…" : "Register"}
+          {loading ? t("register.creating") : t("register.submit")}
         </button>
         <p className="muted" style={{ marginTop: "1rem" }}>
-          Already have an account? <Link href="/login">Log in</Link>
+          {t("register.haveAccount")} <Link href="/login">{t("nav.login")}</Link>
         </p>
       </form>
     </div>
@@ -139,11 +143,12 @@ function RegisterForm() {
 }
 
 export default function RegisterPage() {
+  const { t } = useI18n();
   return (
     <Suspense
       fallback={
         <div className="shell auth-wrap">
-          <p className="muted">Loading…</p>
+          <p className="muted">{t("common.loading")}</p>
         </div>
       }
     >

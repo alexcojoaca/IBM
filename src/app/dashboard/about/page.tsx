@@ -1,47 +1,71 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DashNav } from "@/components/DashNav";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/i18n/LanguageProvider";
 
-export default async function AboutPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+export default function AboutPage() {
+  const router = useRouter();
+  const { t } = useI18n();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
+  useEffect(() => {
+    (async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      setIsAdmin(profile?.role === "admin");
+      setLoaded(true);
+    })();
+  }, [router]);
+
+  if (!loaded) {
+    return (
+      <div className="shell dash">
+        <DashNav active="/dashboard/about" />
+        <main className="dash-main">
+          <p className="muted">{t("common.loading")}</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="shell dash">
-      <DashNav active="/dashboard/about" isAdmin={profile?.role === "admin"} />
+      <DashNav active="/dashboard/about" isAdmin={isAdmin} />
       <main className="dash-main">
-        <h1>About IBM</h1>
+        <h1>{t("about.title")}</h1>
         <div className="panel" style={{ maxWidth: 640 }}>
           <p style={{ fontSize: "1.15rem", marginTop: 0 }}>
-            <strong>IBM</strong> — International Business Multiplier
+            <strong>IBM</strong> — {t("brand.tagline")}
           </p>
-          <p>
-            Automated Forex trading client for MetaTrader 5. You get a dedicated license (1 year, 1
-            device), the Windows bot package, and a personal dashboard for keys, devices, and
-            downloads.
-          </p>
-          <h2 style={{ fontFamily: "var(--font-display)" }}>What you get</h2>
+          <p>{t("about.lead")}</p>
+          <h2 style={{ fontFamily: "var(--font-display)" }}>{t("about.what")}</h2>
           <ul className="muted">
-            <li>Desktop bot linked to your online license</li>
-            <li>Your name shown in the app after activation</li>
-            <li>Disconnect a device anytime from this platform</li>
-            <li>Languages: English, Română, Italiano, Español, Français, Polski, Русский</li>
+            <li>{t("about.b1")}</li>
+            <li>{t("about.b2")}</li>
+            <li>{t("about.b3")}</li>
+            <li>{t("about.b4")}</li>
           </ul>
-          <h2 style={{ fontFamily: "var(--font-display)" }}>How to start</h2>
+          <h2 style={{ fontFamily: "var(--font-display)" }}>{t("about.start")}</h2>
           <ol className="muted">
-            <li>Buy a license (€150)</li>
-            <li>Copy your key from Licenses</li>
-            <li>Download IBM-Client.zip</li>
-            <li>Run Start IBM.cmd → enter the key → connect MT5</li>
+            <li>{t("about.s1")}</li>
+            <li>{t("about.s2")}</li>
+            <li>{t("about.s3")}</li>
+            <li>{t("about.s4")}</li>
           </ol>
         </div>
       </main>

@@ -4,16 +4,22 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashNav } from "@/components/DashNav";
 import { createClient } from "@/lib/supabase/client";
-import { LANGS } from "@/lib/langs";
+import { LANGS, type LangCode } from "@/lib/langs";
+import { useI18n } from "@/i18n/LanguageProvider";
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { t, lang, setLanguage } = useI18n();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [language, setLanguage] = useState("en");
+  const [language, setLocalLanguage] = useState<LangCode>("en");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setLocalLanguage(lang);
+  }, [lang]);
 
   useEffect(() => {
     (async () => {
@@ -31,7 +37,9 @@ export default function SettingsPage() {
         .eq("id", user.id)
         .maybeSingle();
       setIsAdmin(data?.role === "admin");
-      setLanguage(data?.preferred_language || localStorage.getItem("ibm_language") || "en");
+      if (data?.preferred_language) {
+        setLocalLanguage(data.preferred_language as LangCode);
+      }
     })();
   }, [router]);
 
@@ -39,19 +47,11 @@ export default function SettingsPage() {
     e.preventDefault();
     setMsg("");
     setError("");
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    const { error: err } = await supabase
-      .from("profiles")
-      .update({ preferred_language: language })
-      .eq("id", user.id);
-    if (err) setError(err.message);
-    else {
-      localStorage.setItem("ibm_language", language);
-      setMsg("Language saved. The desktop bot uses the same language list.");
+    try {
+      await setLanguage(language, true);
+      setMsg(t("settings.langSaved"));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t("common.failed"));
     }
   };
 
@@ -60,11 +60,11 @@ export default function SettingsPage() {
     setMsg("");
     setError("");
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError(t("settings.passwordShort"));
       return;
     }
     if (password !== password2) {
-      setError("Passwords do not match.");
+      setError(t("settings.passwordMismatch"));
       return;
     }
     const supabase = createClient();
@@ -73,7 +73,7 @@ export default function SettingsPage() {
     else {
       setPassword("");
       setPassword2("");
-      setMsg("Password updated.");
+      setMsg(t("settings.passwordUpdated"));
     }
   };
 
@@ -81,15 +81,22 @@ export default function SettingsPage() {
     <div className="shell dash">
       <DashNav active="/dashboard/settings" isAdmin={isAdmin} />
       <main className="dash-main">
-        <h1>Settings</h1>
+        <h1>{t("settings.title")}</h1>
         {error && <p className="error">{error}</p>}
         {msg && <p className="ok">{msg}</p>}
 
         <form className="panel" onSubmit={saveLang} style={{ maxWidth: 480, marginBottom: "1rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Language</h2>
-          <p className="muted">Same languages as the IBM desktop bot.</p>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("settings.langTitle")}</h2>
+          <p className="muted">{t("settings.langSub")}</p>
           <div className="form-row">
-            <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+            <select
+              value={language}
+              onChange={(e) => {
+                const code = e.target.value as LangCode;
+                setLocalLanguage(code);
+                void setLanguage(code, false);
+              }}
+            >
               {LANGS.map((l) => (
                 <option key={l.code} value={l.code}>
                   {l.label}
@@ -98,14 +105,16 @@ export default function SettingsPage() {
             </select>
           </div>
           <button className="btn btn-primary" type="submit">
-            Save language
+            {t("settings.saveLang")}
           </button>
         </form>
 
         <form className="panel" onSubmit={savePassword} style={{ maxWidth: 480 }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Change password</h2>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>
+            {t("settings.passwordTitle")}
+          </h2>
           <div className="form-row">
-            <label>New password</label>
+            <label>{t("settings.newPassword")}</label>
             <input
               type="password"
               value={password}
@@ -114,7 +123,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="form-row">
-            <label>Confirm password</label>
+            <label>{t("settings.confirmPassword")}</label>
             <input
               type="password"
               value={password2}
@@ -123,7 +132,7 @@ export default function SettingsPage() {
             />
           </div>
           <button className="btn btn-primary" type="submit">
-            Update password
+            {t("settings.updatePassword")}
           </button>
         </form>
       </main>

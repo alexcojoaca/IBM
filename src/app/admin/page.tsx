@@ -5,6 +5,8 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { generateLicenseKey } from "@/lib/license";
 import { AdminNetworkBoard, type PyramidNode } from "@/components/NetworkPyramid";
+import { useI18n } from "@/i18n/LanguageProvider";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 type ProfileBrief = {
   full_name: string | null;
@@ -49,6 +51,7 @@ function statusClass(status: string) {
 }
 
 export default function AdminPage() {
+  const { t } = useI18n();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [activeDevices, setActiveDevices] = useState(0);
@@ -70,7 +73,7 @@ export default function AdminPage() {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      setDiag("Not logged in. Go to /login first.");
+      setDiag(t("admin.notLoggedIn"));
       setAllowed(false);
       return;
     }
@@ -169,7 +172,7 @@ export default function AdminPage() {
         .maybeSingle();
       userId = prof?.id || null;
       if (!userId) {
-        setError("No user with that email. Create the account first, or leave email empty.");
+        setError(t("admin.noUser"));
         return;
       }
     }
@@ -197,7 +200,7 @@ export default function AdminPage() {
 
   const copyText = async (text: string) => {
     await navigator.clipboard.writeText(text);
-    setCopyMsg("Copied ✓");
+    setCopyMsg(t("common.copied"));
     setTimeout(() => setCopyMsg(""), 2000);
   };
 
@@ -216,11 +219,11 @@ export default function AdminPage() {
     });
     const body = await res.json();
     if (!res.ok) {
-      setPayMsg(body.detail || "Confirm failed");
+      setPayMsg(body.detail || t("admin.confirmFailed"));
       return;
     }
     setPayMsg(
-      body.license_key ? `Paid → license ${body.license_key} issued` : "Payment confirmed"
+      body.license_key ? t("admin.paidIssued", { key: body.license_key }) : t("admin.paidOk")
     );
     load();
   };
@@ -228,7 +231,7 @@ export default function AdminPage() {
   if (allowed === null) {
     return (
       <div className="shell auth-wrap">
-        <p className="muted">Checking admin access…</p>
+        <p className="muted">{t("admin.checking")}</p>
       </div>
     );
   }
@@ -237,8 +240,11 @@ export default function AdminPage() {
     return (
       <div className="shell auth-wrap">
         <div className="auth-card">
-          <h1>Admin only</h1>
-          <p className="muted">Same login as users — admin is just your role in Supabase.</p>
+          <div style={{ marginBottom: "0.75rem" }}>
+            <LanguageSwitcher compact />
+          </div>
+          <h1>{t("admin.only")}</h1>
+          <p className="muted">{t("admin.onlySub")}</p>
           {diag && (
             <pre
               style={{
@@ -255,10 +261,10 @@ export default function AdminPage() {
           )}
           <div className="row" style={{ marginTop: "1rem" }}>
             <button className="btn btn-primary" type="button" onClick={() => load()}>
-              Recheck
+              {t("admin.recheck")}
             </button>
             <Link className="btn" href="/dashboard">
-              Back
+              {t("common.back")}
             </Link>
           </div>
         </div>
@@ -272,26 +278,29 @@ export default function AdminPage() {
         <div className="brand" style={{ marginBottom: "0.35rem" }}>
           IBM <span>●</span>
         </div>
-        <p className="muted" style={{ fontSize: "0.75rem", margin: "0 0 1.25rem" }}>
+        <p className="muted" style={{ fontSize: "0.75rem", margin: "0 0 0.75rem" }}>
           Admin · {adminName}
         </p>
+        <div style={{ marginBottom: "1rem" }}>
+          <LanguageSwitcher compact />
+        </div>
         <Link className="active" href="/admin">
-          Overview
+          {t("admin.overview")}
         </Link>
-        <Link href="/dashboard">User dashboard</Link>
-        <Link href="/bot/">Open bot</Link>
-        <Link href="/">Landing</Link>
+        <Link href="/dashboard">{t("admin.userDash")}</Link>
+        <Link href="/bot/">{t("nav.openBot")}</Link>
+        <Link href="/">{t("admin.landing")}</Link>
         <button className="btn" type="button" style={{ marginTop: "1.25rem" }} onClick={() => load()}>
-          Refresh data
+          {t("admin.refresh")}
         </button>
       </aside>
 
       <main className="dash-main">
         <div className="admin-head">
           <div>
-            <h1>Admin dashboard</h1>
+            <h1>{t("admin.title")}</h1>
             <p className="muted" style={{ marginTop: "-0.5rem" }}>
-              Clients, licenses, payments — International Business Multiplier
+              {t("admin.sub")}
             </p>
           </div>
           {copyMsg && <span className="ok" style={{ margin: 0 }}>{copyMsg}</span>}
@@ -299,23 +308,23 @@ export default function AdminPage() {
 
         <div className="stat-grid">
           <div className="stat-card">
-            <span className="muted">Licenses</span>
+            <span className="muted">{t("admin.statLicenses")}</span>
             <strong>{stats.total}</strong>
           </div>
           <div className="stat-card">
-            <span className="muted">Active</span>
+            <span className="muted">{t("admin.statActive")}</span>
             <strong>{stats.active}</strong>
           </div>
           <div className="stat-card">
-            <span className="muted">Clients</span>
+            <span className="muted">{t("admin.statClients")}</span>
             <strong>{stats.clients}</strong>
           </div>
           <div className="stat-card">
-            <span className="muted">Live devices</span>
+            <span className="muted">{t("admin.statDevices")}</span>
             <strong>{stats.activeDevices}</strong>
           </div>
           <div className="stat-card">
-            <span className="muted">Pending payments</span>
+            <span className="muted">{t("admin.statPending")}</span>
             <strong>{stats.pendingPay}</strong>
           </div>
         </div>
@@ -323,21 +332,21 @@ export default function AdminPage() {
         {payMsg && <p className="ok">{payMsg}</p>}
 
         <div className="panel" style={{ marginBottom: "1.25rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Crypto payments</h2>
-          <p className="muted">Confirm transfer → issues €150 / 150 USDT license to the client.</p>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.payments")}</h2>
+          <p className="muted">{t("admin.paymentsSub")}</p>
           {!payments.length ? (
-            <p className="muted">No payment orders yet.</p>
+            <p className="muted">{t("admin.noPayments")}</p>
           ) : (
             <div className="table-wrap">
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Client</th>
-                    <th>Email</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Tx</th>
-                    <th>Status</th>
+                    <th>{t("admin.colClient")}</th>
+                    <th>{t("admin.colEmail")}</th>
+                    <th>{t("admin.colDate")}</th>
+                    <th>{t("admin.colAmount")}</th>
+                    <th>{t("admin.colTx")}</th>
+                    <th>{t("admin.colStatus")}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -365,7 +374,7 @@ export default function AdminPage() {
                             type="button"
                             onClick={() => confirmPayment(p.id)}
                           >
-                            Confirm &amp; issue
+                            {t("admin.confirmIssue")}
                           </button>
                         )}
                       </td>
@@ -378,22 +387,22 @@ export default function AdminPage() {
         </div>
 
         <form className="panel" onSubmit={create} style={{ marginBottom: "1.25rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Create license</h2>
-          <p className="muted">1 device · assign to an existing account email</p>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.create")}</h2>
+          <p className="muted">{t("admin.createSub")}</p>
           {error && <p className="error">{error}</p>}
           {created && (
             <div style={{ marginBottom: "0.75rem" }}>
               <div className="keybox">{created}</div>
               <div className="row" style={{ marginTop: "0.5rem" }}>
                 <button type="button" className="btn btn-primary" onClick={() => copyText(created)}>
-                  Copy key
+                  {t("admin.copyKey")}
                 </button>
               </div>
             </div>
           )}
           <div className="row">
             <div className="form-row" style={{ flex: 1, minWidth: 220, marginBottom: 0 }}>
-              <label>Client email</label>
+              <label>{t("admin.clientEmail")}</label>
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -401,7 +410,7 @@ export default function AdminPage() {
               />
             </div>
             <div className="form-row" style={{ width: 120, marginBottom: 0 }}>
-              <label>Days</label>
+              <label>{t("admin.days")}</label>
               <input
                 type="number"
                 min={1}
@@ -410,50 +419,48 @@ export default function AdminPage() {
               />
             </div>
             <button className="btn btn-primary" style={{ alignSelf: "end" }}>
-              Generate
+              {t("admin.generate")}
             </button>
           </div>
         </form>
 
         <div className="panel" style={{ marginBottom: "1.25rem" }}>
-          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>Network canvas</h2>
-          <p className="muted">
-            Full MLM map — who brought whom (3 levels). Split: company €100 · L1 €30 · L2 €15 · L3 €5.
-          </p>
+          <h2 style={{ marginTop: 0, fontFamily: "var(--font-display)" }}>{t("admin.network")}</h2>
+          <p className="muted">{t("admin.networkSub")}</p>
           <AdminNetworkBoard trees={forest} />
         </div>
 
         <div className="panel">
           <div className="admin-head" style={{ marginBottom: "0.75rem" }}>
-            <h2 style={{ margin: 0, fontFamily: "var(--font-display)" }}>Clients &amp; licenses</h2>
+            <h2 style={{ margin: 0, fontFamily: "var(--font-display)" }}>{t("admin.clients")}</h2>
             <input
               className="search-input"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search name, email, key…"
+              placeholder={t("admin.search")}
             />
           </div>
           {!filteredLicenses.length ? (
-            <p className="muted">No licenses match.</p>
+            <p className="muted">{t("admin.noMatch")}</p>
           ) : (
             <div className="table-wrap">
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Client</th>
-                    <th>Email</th>
-                    <th>License key</th>
-                    <th>Plan</th>
-                    <th>Status</th>
-                    <th>Expires</th>
-                    <th>Actions</th>
+                    <th>{t("admin.colClient")}</th>
+                    <th>{t("admin.colEmail")}</th>
+                    <th>{t("admin.colKey")}</th>
+                    <th>{t("admin.colPlan")}</th>
+                    <th>{t("admin.colStatus")}</th>
+                    <th>{t("admin.colExpires")}</th>
+                    <th>{t("admin.colActions")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredLicenses.map((l) => (
                     <tr key={l.id}>
                       <td>
-                        <strong>{l.profiles?.full_name || "Unassigned"}</strong>
+                        <strong>{l.profiles?.full_name || t("admin.unassigned")}</strong>
                       </td>
                       <td>{l.profiles?.email || "—"}</td>
                       <td>
@@ -465,7 +472,7 @@ export default function AdminPage() {
                             style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
                             onClick={() => copyText(l.license_key)}
                           >
-                            Copy
+                            {t("common.copy")}
                           </button>
                         </div>
                       </td>
@@ -479,13 +486,13 @@ export default function AdminPage() {
                       <td>
                         <div className="row">
                           <button className="btn" type="button" onClick={() => setStatus(l.id, "suspended")}>
-                            Suspend
+                            {t("admin.suspend")}
                           </button>
                           <button className="btn" type="button" onClick={() => setStatus(l.id, "active")}>
-                            Reactivate
+                            {t("admin.reactivate")}
                           </button>
                           <button className="btn" type="button" onClick={() => setStatus(l.id, "revoked")}>
-                            Revoke
+                            {t("admin.revoke")}
                           </button>
                         </div>
                       </td>

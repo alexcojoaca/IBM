@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/i18n/LanguageProvider";
+
 export type PyramidNode = {
   id: string;
   full_name: string | null;
@@ -12,11 +14,13 @@ export type PyramidNode = {
 function NodeCard({
   node,
   highlight,
+  memberLabel,
 }: {
   node: PyramidNode;
   highlight?: boolean;
+  memberLabel: string;
 }) {
-  const label = node.full_name || node.email || "Member";
+  const label = node.full_name || node.email || memberLabel;
   return (
     <div
       title={node.email || ""}
@@ -44,7 +48,17 @@ function NodeCard({
   );
 }
 
-function LevelRow({ nodes, levelLabel }: { nodes: PyramidNode[]; levelLabel: string }) {
+function LevelRow({
+  nodes,
+  levelLabel,
+  emptyLabel,
+  memberLabel,
+}: {
+  nodes: PyramidNode[];
+  levelLabel: string;
+  emptyLabel: string;
+  memberLabel: string;
+}) {
   if (!nodes.length) {
     return (
       <div style={{ textAlign: "center", margin: "0.75rem 0" }}>
@@ -52,7 +66,7 @@ function LevelRow({ nodes, levelLabel }: { nodes: PyramidNode[]; levelLabel: str
           {levelLabel}
         </div>
         <div className="muted" style={{ fontSize: "0.8rem" }}>
-          Empty
+          {emptyLabel}
         </div>
       </div>
     );
@@ -71,14 +85,13 @@ function LevelRow({ nodes, levelLabel }: { nodes: PyramidNode[]; levelLabel: str
         }}
       >
         {nodes.map((n) => (
-          <NodeCard key={n.id} node={n} />
+          <NodeCard key={n.id} node={n} memberLabel={memberLabel} />
         ))}
       </div>
     </div>
   );
 }
 
-/** Collect nodes at depth 1..3 under root */
 function flattenLevels(root: PyramidNode) {
   const l1 = root.children || [];
   const l2 = l1.flatMap((c) => c.children || []);
@@ -93,10 +106,12 @@ export function NetworkPyramid({
   root: PyramidNode | null;
   title?: string;
 }) {
+  const { t } = useI18n();
   if (!root) {
-    return <p className="muted">No network data yet.</p>;
+    return <p className="muted">{t("aff.noNetwork")}</p>;
   }
   const { l1, l2, l3 } = flattenLevels(root);
+  const member = t("common.member");
 
   return (
     <div
@@ -114,27 +129,43 @@ export function NetworkPyramid({
         </h3>
       )}
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
-        <NodeCard node={{ ...root, level: 0 }} highlight />
+        <NodeCard node={{ ...root, level: 0 }} highlight memberLabel={member} />
       </div>
       <svg width="100%" height="28" viewBox="0 0 100 28" preserveAspectRatio="none">
         <line x1="50" y1="0" x2="50" y2="28" stroke="rgba(232,240,234,0.2)" strokeWidth="1" />
       </svg>
-      <LevelRow nodes={l1.map((n) => ({ ...n, level: 1 }))} levelLabel="Level 1 · €30 each" />
-      <LevelRow nodes={l2.map((n) => ({ ...n, level: 2 }))} levelLabel="Level 2 · €15 each" />
-      <LevelRow nodes={l3.map((n) => ({ ...n, level: 3 }))} levelLabel="Level 3 · €5 each" />
+      <LevelRow
+        nodes={l1.map((n) => ({ ...n, level: 1 }))}
+        levelLabel={t("aff.levelLabel1")}
+        emptyLabel={t("common.empty")}
+        memberLabel={member}
+      />
+      <LevelRow
+        nodes={l2.map((n) => ({ ...n, level: 2 }))}
+        levelLabel={t("aff.levelLabel2")}
+        emptyLabel={t("common.empty")}
+        memberLabel={member}
+      />
+      <LevelRow
+        nodes={l3.map((n) => ({ ...n, level: 3 }))}
+        levelLabel={t("aff.levelLabel3")}
+        emptyLabel={t("common.empty")}
+        memberLabel={member}
+      />
     </div>
   );
 }
 
 export function AdminNetworkBoard({ trees }: { trees: PyramidNode[] }) {
-  if (!trees.length) return <p className="muted">No members yet.</p>;
+  const { t } = useI18n();
+  if (!trees.length) return <p className="muted">{t("aff.noMembers")}</p>;
   return (
     <div style={{ display: "grid", gap: "1.25rem" }}>
-      {trees.map((t) => (
+      {trees.map((node) => (
         <NetworkPyramid
-          key={t.id}
-          root={t}
-          title={t.full_name || t.email || "Root"}
+          key={node.id}
+          root={node}
+          title={node.full_name || node.email || t("common.member")}
         />
       ))}
     </div>
