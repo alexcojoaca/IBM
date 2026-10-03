@@ -5,16 +5,28 @@ NEXT_PUBLIC_SUPABASE_URL=https://ghockgdiqkaehgoxotjr.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=COMPLETEAZĂ_anon_sau_publishable_key
 SUPABASE_SERVICE_ROLE_KEY=COMPLETEAZĂ_service_role_key
 
-# --- Crypto (€150 = 150 USDT) — ajunge UNA din cele două adrese ---
-CRYPTO_WALLET_ADDRESS=COMPLETEAZĂ_adresa_ta_USDT
-NEXT_PUBLIC_CRYPTO_WALLET=COMPLETEAZĂ_aceeasi_adresa_USDT
+# --- Crypto receive + verify (€150 = 150 USDT TRC20) ---
+CRYPTO_WALLET_ADDRESS=COMPLETEAZĂ_adresa_TronLink_USDT
+NEXT_PUBLIC_CRYPTO_WALLET=COMPLETEAZĂ_aceeasi_adresa
 NEXT_PUBLIC_CRYPTO_NETWORK=TRC20
 CRYPTO_NETWORK=TRC20
 NEXT_PUBLIC_CRYPTO_CURRENCY=USDT
 CRYPTO_CURRENCY=USDT
 NEXT_PUBLIC_CRYPTO_AMOUNT=150
 
+# TronGrid API key (https://www.trongrid.io/) — required for on-chain verify
+TRONGRID_API_KEY=COMPLETEAZĂ_cheia_trongrid
+
+# Hot wallet private key (same wallet as CRYPTO_WALLET_ADDRESS) — SERVER ONLY, never NEXT_PUBLIC_
+# Used to auto-send L1/L2/L3 USDT to affiliates. Keep TRX for fees + USDT for commissions.
+TRON_PRIVATE_KEY=COMPLETEAZĂ_cheia_privata_hex_fara_0x
+
+# Local only — skip blockchain verify / fake payouts (DO NOT set on Vercel production)
+# PAYMENTS_DEV_BYPASS=1
+
 NEXT_PUBLIC_CLIENT_DOWNLOAD_URL=https://github.com/alexcojoaca/IBM/releases/download/IBMClient/IBM.zip
 
-# MLM test unlock (simulates paid €150)
+# Optional MLM test unlock (does not replace real crypto verify)
 MLM_TEST_CODE=IBM-TEST-MLM-2026
+
+# After deploy: run supabase/payments_tron.sql in Supabase SQL Editor

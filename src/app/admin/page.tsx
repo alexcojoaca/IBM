@@ -53,7 +53,21 @@ type DeviceRow = {
   is_active: boolean;
 };
 
-type TabId = "payments" | "create" | "network" | "clients";
+type TabId = "payments" | "create" | "network" | "clients" | "payouts";
+
+type CommissionRow = {
+  id: string;
+  level: number;
+  amount_eur: number;
+  status: string;
+  payout_status: string;
+  payout_tx_hash: string | null;
+  payout_error: string | null;
+  paid_at: string | null;
+  created_at: string;
+  earner?: { full_name: string | null; email: string | null; crypto_wallet: string | null } | null;
+  buyer?: { full_name: string | null; email: string | null } | null;
+};
 
 function statusClass(status: string) {
   if (status === "active" || status === "paid") return "badge badge-ok";
@@ -81,6 +95,8 @@ export default function AdminPage() {
   const [adminId, setAdminId] = useState("");
   const [forest, setForest] = useState<PyramidNode[]>([]);
   const [busyDelete, setBusyDelete] = useState<string | null>(null);
+  const [commissions, setCommissions] = useState<CommissionRow[]>([]);
+  const [busyPayout, setBusyPayout] = useState(false);
 
   const load = async () => {
     const supabase = createClient();
@@ -150,6 +166,12 @@ export default function AdminPage() {
     if (treeRes.ok) {
       const body = await treeRes.json();
       setForest((body.trees as PyramidNode[]) || []);
+    }
+
+    const payRes = await fetch("/api/admin/payout");
+    if (payRes.ok) {
+      const body = await payRes.json();
+      setCommissions((body.commissions as CommissionRow[]) || []);
     }
   };
 
@@ -261,6 +283,28 @@ export default function AdminPage() {
     load();
   };
 
+  const retryPayout = async (ids?: string[], allPending?: boolean) => {
+    setBusyPayout(true);
+    setPayMsg("");
+    try {
+      const res = await fetch("/api/admin/payout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          allPending ? { all_pending: true } : { commission_ids: ids || [] }
+        ),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.detail || t("admin.deleteFailed"));
+      setPayMsg(t("admin.payoutOk"));
+      await load();
+    } catch (err: unknown) {
+      setPayMsg(err instanceof Error ? err.message : t("admin.deleteFailed"));
+    } finally {
+      setBusyPayout(false);
+    }
+  };
+
   const deleteAccount = async (userId: string, label: string) => {
     if (!window.confirm(`${t("admin.deleteConfirm")}\n\n${label}`)) return;
     setBusyDelete(userId);
@@ -331,6 +375,7 @@ export default function AdminPage() {
     { id: "create", label: t("admin.tabCreate") },
     { id: "network", label: t("admin.tabNetwork") },
     { id: "clients", label: t("admin.tabClients") },
+    { id: "payouts", label: t("admin.tabPayouts") },
   ];
 
   return (
@@ -651,6 +696,93 @@ export default function AdminPage() {
               )}
             </div>
           </>
+        )}
+
+        {tab === "payouts" && (
+          <div className="panel">
+            <div className="admin-head" style={{ marginBottom: "0.75rem" }}>
+              <div>
+                <h2 style={{ margin: 0, fontFamily: "var(--font-display)" }}>
+                  {t("admin.payoutsTitle")}
+                </h2>
+                <p className="muted" style={{ margin: "0.35rem 0 0" }}>
+                  {t("admin.payoutsSub")}
+                </p>
+              </div>
+              <button
+                className="btn btn-primary"
+                type="button"
+                disabled={busyPayout}
+                onClick={() => retryPayout(undefined, true)}
+              >
+                {busyPayout ? "…" : t("admin.retryAll")}
+              </button>
+            </div>
+            {!commissions.length ? (
+              <p className="muted">{t("admin.noPayouts")}</p>
+            ) : (
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>{t("admin.colDate")}</th>
+                      <th>{t("aff.colLevel")}</th>
+                      <th>{t("admin.colClient")}</th>
+                      <th>{t("admin.colEmail")}</th>
+                      <th>{t("admin.colAmount")}</th>
+                      <th>{t("admin.colPayout")}</th>
+                      <th>{t("admin.colPayoutTx")}</th>
+                      <th>{t("admin.colActions")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {commissions.map((c) => {
+                      const earner = Array.isArray(c.earner) ? c.earner[0] : c.earner;
+                      return (
+                        <tr key={c.id}>
+                          <td>{new Date(c.created_at).toLocaleString()}</td>
+                          <td>L{c.level}</td>
+                          <td>
+                            <strong>{earner?.full_name || "—"}</strong>
+                            <div className="muted" style={{ fontSize: "0.75rem" }}>
+                              {earner?.crypto_wallet || "no wallet"}
+                            </div>
+                          </td>
+                          <td>{earner?.email || "—"}</td>
+                          <td>€{Number(c.amount_eur).toFixed(0)}</td>
+                          <td>
+                            <span className={statusClass(c.payout_status === "paid" ? "paid" : c.payout_status === "pending" ? "pending" : "rejected")}>
+                              {c.payout_status}
+                            </span>
+                            {c.payout_error && (
+                              <div className="muted" style={{ fontSize: "0.72rem", maxWidth: 180 }}>
+                                {c.payout_error}
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <code className="tiny">{c.payout_tx_hash || "—"}</code>
+                          </td>
+                          <td>
+                            {c.payout_status !== "paid" && (
+                              <button
+                                className="btn"
+                                type="button"
+                                disabled={busyPayout}
+                                onClick={() => retryPayout([c.id])}
+                              >
+                                {t("admin.retryPayout")}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         )}
       </main>
     </div>

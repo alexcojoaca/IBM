@@ -80,12 +80,18 @@ export async function distributeCommissions(opts: {
       level: u.level,
       amount_eur: amount,
       status: "approved",
+      payout_status: "pending",
     });
     paidOut += amount;
   }
 
   if (rows.length) {
-    const { error } = await supabase.from("affiliate_commissions").insert(rows);
+    let { error } = await supabase.from("affiliate_commissions").insert(rows);
+    // Fallback if payout columns not migrated yet
+    if (error && /payout_status/i.test(error.message)) {
+      const legacy = rows.map(({ payout_status: _p, ...r }) => r);
+      ({ error } = await supabase.from("affiliate_commissions").insert(legacy));
+    }
     if (error) throw new Error(error.message);
   }
 

@@ -29,6 +29,7 @@ export default function BuyPage() {
   const router = useRouter();
   const { t } = useI18n();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [fromAddress, setFromAddress] = useState("");
   const [txHash, setTxHash] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [msg, setMsg] = useState("");
@@ -86,18 +87,20 @@ export default function BuyPage() {
       const res = await fetch("/api/payments/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tx_hash: txHash }),
+        body: JSON.stringify({
+          tx_hash: txHash.trim(),
+          from_address: fromAddress.trim() || undefined,
+        }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.detail || t("common.failed"));
       if (body.license_key) {
         setMsg(t("buy.msgLicensed", { key: body.license_key }));
-      } else if (txHash) {
-        setMsg(t("buy.msgWithHash"));
+        setTxHash("");
+        setFromAddress("");
       } else {
-        setMsg(t("buy.msgNoHash"));
+        setMsg(t("buy.msgWithHash"));
       }
-      setTxHash("");
       await load();
       if (body.license_key) {
         setTimeout(() => router.push("/dashboard"), 1500);
@@ -129,16 +132,18 @@ export default function BuyPage() {
             <p className="muted">{t("buy.loadingPay")}</p>
           ) : (
             <>
-              <p>
-                {t("buy.priceLine", { amount: amountCrypto, currency, network })}
-              </p>
+              <p>{t("buy.priceLine", { amount: amountCrypto, currency, network })}</p>
               {wallet ? (
                 <div style={{ marginBottom: "0.75rem" }}>
                   <div className="keybox">{wallet}</div>
                   <button className="btn" type="button" style={{ marginTop: "0.5rem" }} onClick={copyWallet}>
                     {t("buy.copyAddr")}
                   </button>
-                  {copyMsg && <span className="ok" style={{ marginLeft: 8 }}>{copyMsg}</span>}
+                  {copyMsg && (
+                    <span className="ok" style={{ marginLeft: 8 }}>
+                      {copyMsg}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <p className="error">{t("buy.walletMissing")}</p>
@@ -150,11 +155,20 @@ export default function BuyPage() {
             {error && <p className="error">{error}</p>}
             {msg && <p className="ok">{msg}</p>}
             <div className="form-row">
+              <label>{t("buy.fromLabel")}</label>
+              <input
+                value={fromAddress}
+                onChange={(e) => setFromAddress(e.target.value)}
+                placeholder={t("buy.fromPlaceholder")}
+              />
+            </div>
+            <div className="form-row">
               <label>{t("buy.txLabel")}</label>
               <input
                 value={txHash}
                 onChange={(e) => setTxHash(e.target.value)}
                 placeholder={t("buy.txPlaceholder")}
+                required
               />
             </div>
             <button className="btn btn-primary" disabled={loading || !txHash.trim()} type="submit">
